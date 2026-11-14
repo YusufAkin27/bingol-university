@@ -140,7 +140,7 @@ public class AcademicianController {
     }
 
     @PutMapping("/courses/{id}/slots")
-    public List<SlotView> slots(@PathVariable Long id, @Valid @RequestBody List<@Valid SlotRequest> body) {
+    public List<SlotView> slots(@PathVariable Long id, @RequestBody List<@Valid SlotRequest> body) {
         Long uid = CurrentUser.id();
         limiter.check("acad-write:user:" + uid, 60, Duration.ofMinutes(1));
         return courses.replaceSlots(uid, id, body);
@@ -176,11 +176,12 @@ public class AcademicianController {
         return enrollments.add(uid, id, r.studentIds());
     }
 
+    /** dryRun=true: hicbir sey degismez, {wouldAdd} doner; aksi halde {added}. */
     @PostMapping("/courses/{id}/enrollments/bulk")
-    public AddedResult enrollBulk(@PathVariable Long id, @Valid @RequestBody BulkEnrollRequest r) {
+    public Object enrollBulk(@PathVariable Long id, @Valid @RequestBody BulkEnrollRequest r) {
         Long uid = CurrentUser.id();
         limiter.check("acad-write:user:" + uid, 60, Duration.ofMinutes(1));
-        return enrollments.bulk(uid, id, r.department(), r.grade());
+        return enrollments.bulk(uid, id, r.department(), r.grade(), Boolean.TRUE.equals(r.dryRun()));
     }
 
     @DeleteMapping("/courses/{id}/enrollments/{studentId}")
@@ -224,6 +225,26 @@ public class AcademicianController {
         return sessions.live(uid, id, after);
     }
 
+    /** Yanlis acilmis oturumu siler (yoklama satirlari ve bekleyen istekler dahil). */
+    @DeleteMapping("/sessions/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteSession(@PathVariable Long id) {
+        Long uid = CurrentUser.id();
+        limiter.check("acad-write:user:" + uid, 60, Duration.ofMinutes(1));
+        sessions.delete(uid, id);
+    }
+
+    /** {counted:false} = bu yoklamayi devamsizliga sayma (kayitlar kalir). Idempotent. */
+    @PatchMapping("/sessions/{id}")
+    public SessionView patchSession(@PathVariable Long id, @Valid @RequestBody AcademicianDtos.SessionPatch p) {
+        Long uid = CurrentUser.id();
+        limiter.check("acad-write:user:" + uid, 60, Duration.ofMinutes(1));
+        if (p.counted() == null) {
+            throw AcErrors.invalid("counted");
+        }
+        return sessions.setCounted(uid, id, p.counted());
+    }
+
     @PostMapping("/sessions/{id}/close")
     public SessionView close(@PathVariable Long id) {
         Long uid = CurrentUser.id();
@@ -256,11 +277,13 @@ public class AcademicianController {
         pending.dismiss(uid, id, studentId);
     }
 
+    /** Govde istege bagli: {excused:true} = izinli isaretle; yoksa/false = var say. */
     @PutMapping("/sessions/{id}/records/{studentId}")
-    public RecordView mark(@PathVariable Long id, @PathVariable Long studentId) {
+    public RecordView mark(@PathVariable Long id, @PathVariable Long studentId,
+                           @RequestBody(required = false) AcademicianDtos.MarkRequest body) {
         Long uid = CurrentUser.id();
         limiter.check("acad-write:user:" + uid, 120, Duration.ofMinutes(1));
-        return sessions.mark(uid, id, studentId);
+        return sessions.mark(uid, id, studentId, body != null && Boolean.TRUE.equals(body.excused()));
     }
 
     @DeleteMapping("/sessions/{id}/records/{studentId}")

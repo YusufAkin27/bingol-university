@@ -26,11 +26,12 @@ public class AttendanceScanService {
     private final Clock clock;
     private final SessionFinalizer finalizer;
     private final PendingScanService pending;
+    private final AcademicianRepository academicians;
     private final TransactionTemplate tx;
 
     public AttendanceScanService(LessonCodeService codes, AcSessionRepository sessions, AcCourseRepository courses,
                                  AcEnrollmentRepository enrollments, AcAttendanceRepository attendance,
-                                 Clock clock, SessionFinalizer finalizer, PendingScanService pending,
+                                 Clock clock, SessionFinalizer finalizer, PendingScanService pending, AcademicianRepository academicians,
                                  PlatformTransactionManager tm) {
         this.codes = codes;
         this.sessions = sessions;
@@ -40,6 +41,7 @@ public class AttendanceScanService {
         this.clock = clock;
         this.finalizer = finalizer;
         this.pending = pending;
+        this.academicians = academicians;
         this.tx = new TransactionTemplate(tm);
     }
 
@@ -61,6 +63,10 @@ public class AttendanceScanService {
         if (c.getStatus() != AcCourse.Status.ACTIVE) {
             throw AcErrors.codeInvalid();
         }
+        // yetkisi alinan/reddedilen akademisyenin oturumu kapali sayilir
+        if (!academicians.findById(c.getOwnerId()).map(a -> a.getStatus() == Academician.Status.APPROVED).orElse(false)) {
+            throw AcErrors.codeInvalid();
+        }
         if (!enrollments.existsByCourseIdAndStudentId(c.getId(), studentId)) {
             // gecerli kod + acik oturum gecildi: kayitli olmayan ogrenci hocaya sunulur (PENDING) ya da reddedilir
             return pending.onScan(studentId, s, c, now);
@@ -69,6 +75,16 @@ public class AttendanceScanService {
         if (existing != null) {
             if (existing.isRevoked()) {
                 throw AcErrors.revoked();
+            }
+            if (existing.isExcused()) {
+                // izinli ogrenci QR okutursa QR ile VAR olur (izin kalkar)
+                tx.executeWithoutResult(st -> {
+                    existing.setExcused(false);
+                    existing.setMethod(AcAttendance.Method.QR);
+                    existing.setMarkedAt(now);
+                    attendance.save(existing);
+                });
+                return new ScanResult("MARKED", c.getName(), s.getLessonDate());
             }
             return new ScanResult("ALREADY", c.getName(), s.getLessonDate());
         }

@@ -51,6 +51,10 @@ public class AcAttendance {
 
     private Long revokedBy;
 
+    /** Izinli/mazeretli: o oturum ogrencinin kendi sayimina girmez (ne var ne yok). */
+    @Column(nullable = false)
+    private boolean excused;
+
     public boolean isRevoked() {
         return revokedAt != null;
     }

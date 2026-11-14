@@ -42,13 +42,14 @@ public class AttendanceController {
         this.clientIp = clientIp;
     }
 
-    /** Kod tahminine karsi kullanici basina dakikada 10 + IP basina dakikada 60. */
+    /** Kod tahminine karsi kullanici basina dakikada 10 + IP basina dakikada 3000. */
     @io.swagger.v3.oas.annotations.Operation(summary = "Yoklama QR taramasi", description = "status: MARKED | ALREADY | PENDING. PENDING = ders kayitli olmayan ogrenci gecerli kodu okuttu, istek hocaya iletildi (final sonuc, hata degil). Hatalar: 422 ATTENDANCE_CODE_INVALID (bozuk/suresi dolmus/kapali/bilinmeyen), 403 ATTENDANCE_NOT_ENROLLED (hoca tarafindan reddedilmis ya da admin/akademisyen/ust sinir), 403 ATTENDANCE_REVOKED (hoca kaydi kaldirdi), 429.")
     @PostMapping("/attendance/scan")
     public ScanResult scan(@Valid @RequestBody ScanRequest r, HttpServletRequest req) {
         Long uid = CurrentUser.id();
         limiter.check("attendance-scan:user:" + uid, 10, Duration.ofMinutes(1));
-        limiter.check("attendance-scan:ip:" + clientIp.limitKey(req), 60, Duration.ofMinutes(1));
+        // IP anahtari (ClientIp.limitKey: IPv4 aynen, IPv6 /64): bir amfi ayni kampus NAT adresi arkasinda olabilir
+        limiter.check("attendance-scan:ip:" + clientIp.limitKey(req), 3000, Duration.ofMinutes(1));
         return scans.scan(uid, r);
     }
 

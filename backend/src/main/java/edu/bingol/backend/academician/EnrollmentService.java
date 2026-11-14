@@ -78,8 +78,11 @@ public class EnrollmentService {
         return enroll(userId, c, directory.eligibleByIds(ids).keySet());
     }
 
-    /** Bolum (+ sinif) ogrencilerinin tamamini ekler; eslesen sayi {@link #BULK_CAP}'i asarsa hicbiri eklenmez (422). */
-    public AddedResult bulk(Long userId, Long courseId, String department, String grade) {
+    /**
+     * Bolum (+ sinif) ogrencilerinin tamamini ekler; eslesen sayi {@link #BULK_CAP}'i asarsa hicbiri eklenmez (422).
+     * {@code dryRun}: hicbir sey degismez, eklenecek (halihazirda kayitli olmayan) sayi doner.
+     */
+    public Object bulk(Long userId, Long courseId, String department, String grade, boolean dryRun) {
         AcCourse c = guard.ownCourse(userId, courseId);
         String dept = AcademicianService.clean(department, "department", 160, true);
         List<Person> match = directory.byDepartment(dept, AcademicianService.clean(grade, "grade", 8, false), BULK_CAP + 1);
@@ -87,7 +90,12 @@ public class EnrollmentService {
             throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "AC_BULK_TOO_LARGE",
                     "Eşleşen öğrenci sayısı " + BULK_CAP + " sınırını aşıyor; sınıf süzgeci ekleyin.", String.valueOf(BULK_CAP));
         }
-        return enroll(userId, c, match.stream().map(Person::id).toList());
+        List<Long> ids = match.stream().map(Person::id).toList();
+        if (dryRun) {
+            Set<Long> already = ids.isEmpty() ? Set.of() : new LinkedHashSet<>(enrollments.alreadyEnrolled(c.getId(), ids));
+            return new AcademicianDtos.DryRunResult((int) ids.stream().filter(id -> !already.contains(id)).count());
+        }
+        return enroll(userId, c, ids);
     }
 
     public void remove(Long userId, Long courseId, Long studentId) {

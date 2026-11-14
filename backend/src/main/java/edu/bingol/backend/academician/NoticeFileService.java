@@ -49,12 +49,19 @@ public class NoticeFileService {
     private final AcEnrollmentRepository enrollments;
     private final PrivateMediaStore store;
     private final AcademicianProperties props;
+    private final AcademicianRepository academicians;
+    private final org.springframework.util.unit.DataSize multipartMax;
     private final Clock clock;
     private final TransactionTemplate tx;
 
     public NoticeFileService(AcademicianGuard guard, AcNoticeFileRepository files, AcNoticeRepository notices,
                              AcEnrollmentRepository enrollments, PrivateMediaStore store, AcademicianProperties props,
+                             AcademicianRepository academicians,
+                             @org.springframework.beans.factory.annotation.Value("${spring.servlet.multipart.max-file-size:52MB}")
+                             org.springframework.util.unit.DataSize multipartMax,
                              Clock clock, PlatformTransactionManager tm) {
+        this.academicians = academicians;
+        this.multipartMax = multipartMax;
         this.guard = guard;
         this.files = files;
         this.notices = notices;
@@ -73,29 +80,22 @@ public class NoticeFileService {
         if (file == null || file.isEmpty()) {
             throw typeNotAllowed();
         }
-        if (file.getSize() > MAX_BYTES) {
-            throw tooLarge();
+        long max = maxFileBytes();
+        if (file.getSize() > max) {
+            throw tooLarge(max);
         }
         byte[] data;
         try (InputStream in = file.getInputStream()) {
-            data = in.readNBytes((int) MAX_BYTES + 1);
+            data = in.readNBytes((int) max + 1);
         } catch (IOException e) {
             throw typeNotAllowed();
         }
-        if (data.length > MAX_BYTES) {
-            throw tooLarge();
+        if (data.length > max) {
+            throw tooLarge(max);
         }
         String name = NoticeFileSniffer.sanitizeName(file.getOriginalFilename());
         NoticeFileSniffer.Detected det = NoticeFileSniffer.detect(name, data).orElseThrow(NoticeFileService::typeNotAllowed);
         cleanStale();
-        if (files.pendingOf(course.getId(), userId, PageRequest.of(0, MAX_FILES + 1)).size() >= MAX_FILES) {
-            throw limit();
-        }
-        long cap = props.courseStorageCapMb() * 1024L * 1024L;
-        if (files.totalBytes(course.getId()) + data.length > cap) {
-            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "NOTICE_STORAGE_CAP",
-                    "Bu dersin dosya depolama sınırına ulaşıldı.");
-        }
         String key = store.storeBlob(BUCKET, data);
         AcNoticeFile f = new AcNoticeFile();
         f.setCourseId(course.getId());
@@ -106,7 +106,20 @@ public class NoticeFileService {
         f.setUploadedBy(userId);
         f.setCreatedAt(clock.instant());
         try {
-            AcNoticeFile saved = tx.execute(s -> files.save(f));
+            // kota kontrolu ve kayit TEK islemde, akademisyen satiri kilitliyken (es zamanli yuklemeler kotayi birlikte asamaz)
+            AcNoticeFile saved = tx.execute(s -> {
+                academicians.lockById(userId);
+                if (files.pendingOf(course.getId(), userId, PageRequest.of(0, MAX_FILES + 1)).size() >= MAX_FILES) {
+                    throw limit();
+                }
+                long courseCap = props.courseStorageCapMb() * 1024L * 1024L;
+                long ownerCap = props.ownerStorageCapMb() * 1024L * 1024L;
+                if (files.totalBytes(course.getId()) + data.length > courseCap || files.ownerBytes(userId) + data.length > ownerCap) {
+                    throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "NOTICE_STORAGE_CAP",
+                            "Dosya depolama sınırına ulaşıldı.");
+                }
+                return files.save(f);
+            });
             return view(saved);
         } catch (RuntimeException e) {
             store.delete(BUCKET, key); // satir yazilamadiysa yetim bayt birakma
@@ -117,7 +130,7 @@ public class NoticeFileService {
     /** Bekleyen (henuz baglanmamis) kendi dosyasini siler. */
     public void deletePending(Long userId, Long fileId) {
         AcNoticeFile f = files.findById(fileId).orElseThrow(AcErrors::noticeNotFound);
-        guard.ownCourse(userId, f.getCourseId());
+        NoticeService.ownCourseOrNoticeNotFound(guard, userId, f.getCourseId());
         if (f.getNoticeId() != null || !userId.equals(f.getUploadedBy())) {
             throw AcErrors.noticeNotFound();
         }
@@ -148,10 +161,12 @@ public class NoticeFileService {
         return rows;
     }
 
+    /** Kosullu baglama (WHERE notice_id IS NULL): dosya baska istek tarafindan alindiysa istek BASARISIZ olur (islem geri alinir). */
     void attach(Collection<AcNoticeFile> rows, Long noticeId) {
         for (AcNoticeFile f : rows) {
-            f.setNoticeId(noticeId);
-            files.save(f);
+            if (files.attachIfFree(f.getId(), noticeId) != 1) {
+                throw AcErrors.invalid("fileIds");
+            }
         }
     }
 
@@ -200,14 +215,14 @@ public class NoticeFileService {
 
     /** Ogretim elemani indirmesi: yalniz kendi dersinin duyurusu. */
     public ResponseEntity<byte[]> downloadForOwner(Long userId, Long noticeId, Long fileId) {
-        AcNotice n = notices.findById(noticeId).orElseThrow(AcErrors::noticeNotFound);
-        guard.ownCourse(userId, n.getCourseId()); // baskasinin dersi: 404
+        AcNotice n = notices.findById(noticeId).filter(x -> x.getDeletedAt() == null).orElseThrow(AcErrors::noticeNotFound);
+        NoticeService.ownCourseOrNoticeNotFound(guard, userId, n.getCourseId()); // baskasinin dersi: AYNI 404 (kimlik sorgulanamaz)
         return serve(noticeId, fileId);
     }
 
     /** Ogrenci indirmesi: dersin KAYITLI ogrencisi; kayitli degilse ya da yol tutarsizsa 404. */
     public ResponseEntity<byte[]> downloadForStudent(Long studentId, Long courseId, Long noticeId, Long fileId) {
-        AcNotice n = notices.findById(noticeId).orElseThrow(AcErrors::noticeNotFound);
+        AcNotice n = notices.findById(noticeId).filter(x -> x.getDeletedAt() == null).orElseThrow(AcErrors::noticeNotFound);
         if (!n.getCourseId().equals(courseId) || !enrollments.existsByCourseIdAndStudentId(courseId, studentId)) {
             throw AcErrors.noticeNotFound();
         }
@@ -246,9 +261,26 @@ public class NoticeFileService {
                 "Bu dosya türüne izin verilmiyor.");
     }
 
-    private static ApiException tooLarge() {
+    /** Gercek sinir: min(20 MB, spring.servlet.multipart.max-file-size). */
+    public long maxFileBytes() {
+        return Math.min(MAX_BYTES, multipartMax.toBytes());
+    }
+
+    static ApiException tooLarge(long maxBytes) {
+        long mb = Math.max(1, maxBytes >> 20);
         return new ApiException(HttpStatus.PAYLOAD_TOO_LARGE, "NOTICE_FILE_TOO_LARGE",
-                "Dosya en fazla " + (MAX_BYTES >> 20) + " MB olabilir.", String.valueOf(MAX_BYTES >> 20));
+                "Dosya en fazla " + mb + " MB olabilir.", String.valueOf(mb));
+    }
+
+    /** Gece bakimi: 24 saatten eski bagsiz dosyalar (satir + depo nesnesi); en cok {@code limit}. @return silinen sayisi */
+    public int sweepStalePending(int limit) {
+        int n = 0;
+        for (AcNoticeFile f : files.stalePending(clock.instant().minus(PENDING_TTL), PageRequest.of(0, limit))) {
+            tx.executeWithoutResult(s -> files.delete(f));
+            store.delete(BUCKET, f.getStorageKey());
+            n++;
+        }
+        return n;
     }
 
     private static ApiException limit() {

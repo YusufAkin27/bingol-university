@@ -25,10 +25,12 @@ public class AcademicianExporters {
     private final AcEnrollmentRepository enrollments;
     private final AcAttendanceRepository attendance;
     private final AcSessionRepository sessions;
+    private final AcScanRequestRepository scanRequests;
 
     public AcademicianExporters(AcademicianRepository academicians, AcCourseRepository courses,
                                 AcEnrollmentRepository enrollments, AcAttendanceRepository attendance,
-                                AcSessionRepository sessions) {
+                                AcSessionRepository sessions, AcScanRequestRepository scanRequests) {
+        this.scanRequests = scanRequests;
         this.academicians = academicians;
         this.courses = courses;
         this.enrollments = enrollments;
@@ -85,9 +87,23 @@ public class AcademicianExporters {
                 m.put("method", a.getMethod().name());
                 m.put("markedAt", a.getMarkedAt().toString());
                 m.put("revoked", a.isRevoked());
+                m.put("excused", a.isExcused());
                 recs.add(m);
             }
+            // ogrencinin KENDI tarama istekleri (kayitli degilken okuttuklari): ders, tarih, durum, zaman
+            List<Map<String, Object>> reqs = new ArrayList<>();
+            for (AcScanRequest r : scanRequests.ofStudent(uid, PageRequest.of(0, MAX))) {
+                AcSession rs = sessions.findById(r.getSessionId()).orElse(null);
+                Map<String, Object> m = new LinkedHashMap<>();
+                String cn = rs == null ? null : courses.findById(rs.getCourseId()).map(AcCourse::getName).orElse(null);
+                m.put("course", cn);
+                m.put("lessonDate", rs == null ? null : rs.getLessonDate().toString());
+                m.put("status", r.getStatus().name());
+                m.put("scannedAt", r.getScannedAt().toString());
+                reqs.add(m);
+            }
             Map<String, Object> out = new LinkedHashMap<>();
+            out.put("scanRequests", reqs);
             out.put("enrolledCourses", new ArrayList<>(names.values()));
             out.put("records", recs);
             return out;

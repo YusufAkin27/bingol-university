@@ -7,7 +7,9 @@ CREATE TABLE ac_session (
     opened_at   TIMESTAMPTZ NOT NULL,
     expires_at  TIMESTAMPTZ NOT NULL,
     closed_at   TIMESTAMPTZ,
-    status      VARCHAR(8)  NOT NULL
+    status      VARCHAR(8)  NOT NULL,
+    -- Hoca oturumu devamsizliga saymayabilir (telafi dersi vb.): kayitlar kalir, sayimlara girmez.
+    counted     BOOLEAN     NOT NULL DEFAULT TRUE
 );
 CREATE INDEX ak1900_session_course_idx ON ac_session (course_id, lesson_date);
 
@@ -22,6 +24,8 @@ CREATE TABLE ac_attendance (
     -- Hoca kaydi "silerse" satir kalir, revoked_at dolar (devamsiz sayilir); ayni oturumda tekrar taramayla geri donulemez.
     revoked_at  TIMESTAMPTZ,
     revoked_by  BIGINT      REFERENCES app_user (id),
+    -- Izinli/mazeretli: o oturum ogrencinin ne var ne yok sayilir (kendi sayimina girmez).
+    excused     BOOLEAN     NOT NULL DEFAULT FALSE,
     CONSTRAINT ak1900_att_uq UNIQUE (session_id, student_id)
 );
 CREATE INDEX ak1900_att_student_idx ON ac_attendance (student_id);

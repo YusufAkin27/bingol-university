@@ -3043,6 +3043,9 @@
             "minLength" : 0,
             "type" : "string"
           },
+          "dryRun" : {
+            "type" : [ "boolean", "null" ]
+          },
           "grade" : {
             "maxLength" : 8,
             "minLength" : 0,
@@ -4858,6 +4861,12 @@
             "maxLength" : 200,
             "minLength" : 0,
             "type" : [ "string", "null" ]
+          },
+          "plannedSessions" : {
+            "format" : "int32",
+            "maximum" : 400,
+            "minimum" : 0,
+            "type" : [ "integer", "null" ]
           },
           "status" : {
             "maxLength" : 16,
@@ -8102,10 +8111,26 @@
       },
       "LimitView" : {
         "properties" : {
+          "allowedAbsences" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
           "type" : {
             "type" : [ "string", "null" ]
           },
           "value" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          }
+        }
+      },
+      "Limits" : {
+        "properties" : {
+          "noticeFileMaxBytes" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
+          },
+          "noticeFilesPerNotice" : {
             "format" : "int32",
             "type" : [ "integer", "null" ]
           }
@@ -8452,6 +8477,13 @@
           },
           "lastName" : {
             "type" : [ "string", "null" ]
+          },
+          "limits" : {
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Limits"
+            }, {
+              "type" : "null"
+            } ]
           },
           "rejectReason" : {
             "type" : [ "string", "null" ]
@@ -9345,6 +9377,10 @@
           },
           "courseName" : {
             "type" : [ "string", "null" ]
+          },
+          "excusedCount" : {
+            "format" : "int64",
+            "type" : [ "integer", "null" ]
           },
           "limit" : {
             "anyOf" : [ {
@@ -12206,6 +12242,9 @@
           "displayName" : {
             "type" : [ "string", "null" ]
           },
+          "excused" : {
+            "type" : [ "boolean", "null" ]
+          },
           "id" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
@@ -13732,8 +13771,18 @@
           }
         }
       },
+      "SessionPatch" : {
+        "properties" : {
+          "counted" : {
+            "type" : [ "boolean", "null" ]
+          }
+        }
+      },
       "SessionRef" : {
         "properties" : {
+          "counted" : {
+            "type" : [ "boolean", "null" ]
+          },
           "id" : {
             "format" : "int64",
             "type" : [ "integer", "null" ]
@@ -13741,6 +13790,9 @@
           "lessonDate" : {
             "format" : "date",
             "type" : [ "string", "null" ]
+          },
+          "live" : {
+            "type" : [ "boolean", "null" ]
           }
         }
       },
@@ -14285,6 +14337,10 @@
           "displayName" : {
             "type" : [ "string", "null" ]
           },
+          "excusedCount" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
+          },
           "marks" : {
             "additionalProperties" : {
               "type" : "string"
@@ -14293,6 +14349,10 @@
           },
           "overLimit" : {
             "type" : [ "boolean", "null" ]
+          },
+          "sessionCount" : {
+            "format" : "int32",
+            "type" : [ "integer", "null" ]
           },
           "studentId" : {
             "format" : "int64",
@@ -17459,7 +17519,7 @@
             "content" : {
               "*/*" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/AddedResult"
+                  "type" : "object"
                 }
               }
             },
@@ -18240,6 +18300,57 @@
       }
     },
     "/api/academician/sessions/{id}" : {
+      "delete" : {
+        "operationId" : "deleteSession",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "No Content"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "academician-controller" ]
+      },
       "get" : {
         "operationId" : "session",
         "parameters" : [ {
@@ -18281,6 +18392,74 @@
               }
             },
             "description" : "Token yok/gecersiz/suresi dolmus"
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ],
+        "tags" : [ "academician-controller" ]
+      },
+      "patch" : {
+        "operationId" : "patchSession",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "type" : "integer"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/SessionPatch"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/SessionView"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Dogrulama / is kurali hatasi (code alanina bakin)"
+          },
+          "401" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "Token yok/gecersiz/suresi dolmus"
+          },
+          "429" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description" : "RATE_LIMITED: istek siniri asildi"
           }
         },
         "security" : [ {
@@ -18619,6 +18798,15 @@
             "type" : "integer"
           }
         } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MarkRequest"
+              }
+            }
+          }
+        },
         "responses" : {
           "200" : {
             "content" : {

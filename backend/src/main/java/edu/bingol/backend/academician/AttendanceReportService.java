@@ -4,47 +4,43 @@ import edu.bingol.backend.academician.AcademicianDtos.AttendanceMatrix;
 import edu.bingol.backend.academician.AcademicianDtos.LimitView;
 import edu.bingol.backend.academician.AcademicianDtos.SessionRef;
 import edu.bingol.backend.academician.AcademicianDtos.StudentRow;
+import edu.bingol.backend.academician.AttendanceMath.Result;
+import edu.bingol.backend.academician.AttendanceStats.CourseStats;
 import edu.bingol.backend.academician.StudentDirectory.Person;
 import edu.bingol.backend.admin.Csv;
+import edu.bingol.backend.admin.rbac.PermissionAwareMasking;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Devamsizlik matrisi ve CSV. "Yok" = derse kayitli ve o oturumda yoklama satiri olmayan. Sinir degerlendirmesi:
- * COUNT icin devamsizlik &gt; deger, PERCENT icin devamsizlik/oturum sayisi &gt; yuzde => overLimit; atRisk = henuz asilmamis
- * ama bir devamsizlik daha (yeni bir oturumla) siniri asacak ve ogrencinin en az bir devamsizligi var.
+ * Devamsizlik matrisi ve CSV. Sayim kurallari TEK yerde ({@link AttendanceMath}): canli, "sayilmasin" denen, ogrencinin derse
+ * eklenmesinden onceki ve o ogrenci icin izinli oturumlar ogrencinin sayilarina girmez; matriste yine de sutun/isaret olarak
+ * gorunur (canli sutunda "yok" geciciidir: {@code live=true}).
  */
 @Service
 public class AttendanceReportService {
 
-    static final int MAX_SESSIONS = 400;
-    static final int MAX_PAIRS = 400_000;
-
     private final AcademicianGuard guard;
     private final AcCourseRepository courses;
     private final AcSessionRepository sessions;
-    private final AcEnrollmentRepository enrollments;
-    private final AcAttendanceRepository attendance;
+    private final AttendanceStats stats;
     private final StudentDirectory directory;
     private final SessionFinalizer finalizer;
-    private final java.time.Clock clock;
+    private final Clock clock;
 
     public AttendanceReportService(AcademicianGuard guard, AcCourseRepository courses, AcSessionRepository sessions,
-                                   AcEnrollmentRepository enrollments, AcAttendanceRepository attendance,
-                                   StudentDirectory directory, SessionFinalizer finalizer, java.time.Clock clock) {
+                                   AttendanceStats stats, StudentDirectory directory, SessionFinalizer finalizer, Clock clock) {
         this.guard = guard;
         this.courses = courses;
         this.sessions = sessions;
-        this.enrollments = enrollments;
-        this.attendance = attendance;
+        this.stats = stats;
         this.directory = directory;
         this.finalizer = finalizer;
         this.clock = clock;
@@ -55,10 +51,17 @@ public class AttendanceReportService {
         return build(guard.ownCourse(userId, courseId));
     }
 
-    /** Yonetici okumasi: sahiplik aranmaz. */
+    /** Yonetici okumasi: sahiplik aranmaz; users.pii olmayan profillerde ogrenci numarasi (e-posta yerel kismi) maskelenir. */
     @Transactional(readOnly = true)
     public AttendanceMatrix matrixForAdmin(Long courseId) {
-        return build(courses.findById(courseId).orElseThrow(AcErrors::courseNotFound));
+        AttendanceMatrix m = build(courses.findById(courseId).orElseThrow(AcErrors::courseNotFound));
+        if (PermissionAwareMasking.canSeePii()) {
+            return m;
+        }
+        List<StudentRow> masked = m.students().stream().map(r -> new StudentRow(r.studentId(), r.displayName(),
+                PermissionAwareMasking.opaque(r.studentNo()), r.marks(), r.sessionCount(), r.absentCount(), r.excusedCount(),
+                r.atRisk(), r.overLimit())).toList();
+        return new AttendanceMatrix(m.sessions(), masked, m.limit());
     }
 
     @Transactional(readOnly = true)
@@ -67,77 +70,63 @@ public class AttendanceReportService {
     }
 
     AttendanceMatrix build(AcCourse c) {
-        List<AcSession> ss = sessions.ofCourseOldestFirst(c.getId(), PageRequest.of(0, MAX_SESSIONS));
-        if (finalizer != null) {
-            finalizer.observeExpired(ss, clock.instant());
-        }
-        List<Long> sessionIds = ss.stream().map(AcSession::getId).toList();
-        List<AcEnrollment> enrolled = enrollments.ofCourse(c.getId(), PageRequest.of(0, EnrollmentService.MAX_ENROLLED));
-        Map<Long, Person> people = directory.labels(enrolled.stream().map(AcEnrollment::getStudentId).toList());
-        Map<Long, Map<String, String>> marksBy = new HashMap<>();
-        if (!sessionIds.isEmpty()) {
-            Set<Long> enrolledIds = new HashSet<>(enrolled.stream().map(AcEnrollment::getStudentId).toList());
-            for (Object[] row : attendance.pairsOf(sessionIds, PageRequest.of(0, MAX_PAIRS))) {
-                Long stu = (Long) row[1];
-                if (enrolledIds.contains(stu)) {
-                    String mark = row[3] != null ? "REVOKED" : row[2] == AcAttendance.Method.QR ? "PRESENT_QR" : "PRESENT_MANUAL";
-                    marksBy.computeIfAbsent(stu, k -> new HashMap<>()).put(String.valueOf(row[0]), mark);
-                }
-            }
-        }
-        int total = ss.size();
+        Instant now = clock.instant();
+        // suresi dolmus ama kapatilmamis oturumlar once kesinlestirilir (ilk gozlem)
+        finalizer.observeExpired(sessions.ofCourseOldestFirst(c.getId(), PageRequest.of(0, AttendanceStats.MAX_SESSIONS)), now);
+        CourseStats cs = stats.forCourse(c, null, now);
+        Map<Long, Person> people = directory.labels(cs.enrolled().stream().map(AcEnrollment::getStudentId).toList());
         List<StudentRow> rows = new ArrayList<>();
-        for (AcEnrollment e : enrolled) {
+        for (AcEnrollment e : cs.enrolled()) {
             Person p = people.get(e.getStudentId());
-            Map<String, String> have = marksBy.getOrDefault(e.getStudentId(), Map.of());
-            Map<String, String> marks = new java.util.LinkedHashMap<>();
-            int absent = 0;
-            for (AcSession s : ss) {
-                String m = have.getOrDefault(String.valueOf(s.getId()), "ABSENT");
-                marks.put(String.valueOf(s.getId()), m);
-                if (m.equals("ABSENT") || m.equals("REVOKED")) {
-                    absent++;
-                }
-            }
-            AbsencePolicy.Standing st = standing(c.getAbsenceLimitType(), c.getAbsenceLimitValue() == null ? null : c.getAbsenceLimitValue().intValue(),
-                    total, absent);
-            rows.add(new StudentRow(e.getStudentId(), p == null ? null : p.displayName(), p == null ? null : p.studentNo(),
-                    marks, absent, st.atRisk(), st.overLimit()));
+            Result r = cs.byStudent().get(e.getStudentId());
+            rows.add(new StudentRow(e.getStudentId(), p == null ? null : p.displayName(), p == null ? null : p.studentNo(), r.marks(),
+                    r.sessionCount(), r.absent(), r.excused(), r.atRisk(), r.overLimit()));
         }
         rows.sort(Comparator.comparing(StudentRow::displayName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
-        return new AttendanceMatrix(ss.stream().map(s -> new SessionRef(s.getId(), s.getLessonDate())).toList(), rows,
-                CourseService.limitOf(c));
+        List<SessionRef> refs = cs.sessions().stream()
+                .map(s -> new SessionRef(s.getId(), s.getLessonDate(), s.isLive(now), s.isCounted())).toList();
+        return new AttendanceMatrix(refs, rows, CourseService.limitOf(c));
     }
 
-    static AbsencePolicy.Standing standing(AcCourse.LimitType type, Integer value, int total, int absent) {
-        return AbsencePolicy.standing(type, value, total, absent);
+    static String markText(String mark) {
+        return switch (mark) {
+            case "PRESENT_QR" -> "Var (QR)";
+            case "PRESENT_MANUAL" -> "Var (elle)";
+            case "REVOKED" -> "Silindi";
+            case "EXCUSED" -> "İzinli";
+            case "NOT_ENROLLED_YET" -> "Kayıtlı değildi";
+            default -> "Yok";
+        };
     }
 
     static String toCsv(AttendanceMatrix m) {
         StringBuilder sb = new StringBuilder(Csv.BOM);
         List<Object> head = new ArrayList<>(List.of("Öğrenci No", "Ad Soyad"));
-        m.sessions().forEach(s -> head.add(s.lessonDate().toString()));
+        m.sessions().forEach(s -> head.add(s.lessonDate().toString() + (s.counted() ? "" : " (sayılmıyor)")));
         head.add("Devamsızlık");
         head.add("Durum");
         sb.append(Csv.row(head));
+        LimitView lim = m.limit();
         for (StudentRow r : m.students()) {
             List<Object> cells = new ArrayList<>();
             cells.add(r.studentNo());
             cells.add(r.displayName());
-            m.sessions().forEach(s -> cells.add(switch (r.marks().getOrDefault(String.valueOf(s.id()), "ABSENT")) {
-                case "PRESENT_QR" -> "Var (QR)";
-                case "PRESENT_MANUAL" -> "Var (elle)";
-                case "REVOKED" -> "Silindi";
-                default -> "Yok";
-            }));
+            m.sessions().forEach(s -> cells.add(markText(r.marks().getOrDefault(String.valueOf(s.id()), "ABSENT"))));
             cells.add(r.absentCount());
-            cells.add(r.overLimit() ? "Sınır aşıldı" : r.atRisk() ? "Riskli" : "");
+            cells.add(r.overLimit() ? (reachedExactly(lim, r) ? "Sınıra ulaştı" : "Sınır aşıldı") : r.atRisk() ? "Riskli" : "");
             sb.append(Csv.row(cells));
         }
         return sb.toString();
     }
 
-    static LimitView noLimit() {
-        return new LimitView(null, null);
+    /** Devamsizlik tam sinira esitse "ulasti", ustundeyse "asildi". */
+    private static boolean reachedExactly(LimitView lim, StudentRow r) {
+        if (lim == null || lim.value() == null) {
+            return false;
+        }
+        if (lim.allowedAbsences() != null) {
+            return r.absentCount() == lim.allowedAbsences();
+        }
+        return (long) r.absentCount() * 100 == (long) lim.value() * r.sessionCount(); // PERCENT, planlanan yok
     }
 }

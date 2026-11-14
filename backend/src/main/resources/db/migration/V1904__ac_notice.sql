@@ -7,9 +7,11 @@ CREATE TABLE ac_notice (
     note       VARCHAR(1000),
     event_at   TIMESTAMPTZ,
     created_by BIGINT       REFERENCES app_user (id),
-    created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    -- Yumusak silme: silinen duyuru listelerden kalkar ama sinir sayaclari (10 dk / gunluk) onu saymaya devam eder.
+    deleted_at TIMESTAMPTZ
 );
-CREATE INDEX ak1900_notice_course_idx ON ac_notice (course_id, created_at);
+CREATE INDEX ak1900_notice_course_idx ON ac_notice (course_id, id);
 
 -- Duyuru dosyalari (ASSIGNMENT/EXAM/MATERIAL): baytlar veritabaninda DEGIL, mevcut ozel medya deposunda (PrivateMediaStore,
 -- diskte BlobCipher ile sifreli; kova "acnotice"). storage_key = depodaki anahtar. notice_id yuklemeden sonra, duyuru

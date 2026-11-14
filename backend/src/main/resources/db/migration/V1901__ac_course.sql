@@ -10,6 +10,8 @@ CREATE TABLE ac_course (
     grade               VARCHAR(8),
     absence_limit_type  VARCHAR(8),
     absence_limit_value SMALLINT,
+    -- Donem boyunca planlanan ders sayisi: yuzde siniri bu sayidan devamsizlik adedine cevrilir (bos = ders sayisi bilinmiyor).
+    planned_sessions    SMALLINT CHECK (planned_sessions BETWEEN 1 AND 400),
     status              VARCHAR(16)  NOT NULL,
     created_at          TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at          TIMESTAMPTZ  NOT NULL DEFAULT now()

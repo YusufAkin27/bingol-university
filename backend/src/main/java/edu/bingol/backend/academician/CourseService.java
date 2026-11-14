@@ -7,6 +7,7 @@ import edu.bingol.backend.academician.AcademicianDtos.LimitView;
 import edu.bingol.backend.academician.AcademicianDtos.SlotRequest;
 import edu.bingol.backend.academician.AcademicianDtos.SlotView;
 import edu.bingol.backend.catalog.CatalogService;
+import edu.bingol.backend.common.ApiException;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,10 +37,13 @@ public class CourseService {
     private final CatalogService catalog;
     private final AcademicianAccountPurger purger;
     private final AbsenceWarningService warnings;
+    private final AcademicianRepository academicians;
+    private final AcademicianProperties props;
 
     public CourseService(AcademicianGuard guard, AcCourseRepository courses, AcCourseSlotRepository slots,
                          AcEnrollmentRepository enrollments, AcSessionRepository sessions, CatalogService catalog,
-                         AcademicianAccountPurger purger, AbsenceWarningService warnings) {
+                         AcademicianAccountPurger purger, AbsenceWarningService warnings,
+                         AcademicianRepository academicians, AcademicianProperties props) {
         this.guard = guard;
         this.courses = courses;
         this.slots = slots;
@@ -47,6 +52,8 @@ public class CourseService {
         this.catalog = catalog;
         this.purger = purger;
         this.warnings = warnings;
+        this.academicians = academicians;
+        this.props = props;
     }
 
     @Transactional(readOnly = true)
@@ -70,7 +77,15 @@ public class CourseService {
     @Transactional
     public CourseView create(Long userId, CourseRequest r) {
         guard.requireApproved(userId);
+        academicians.lockById(userId); // es zamanli olusturmalar siniri birlikte asamaz
+        if (courses.countByOwnerId(userId) >= props.maxCourses()) {
+            throw new ApiException(HttpStatus.UNPROCESSABLE_ENTITY, "AC_COURSE_LIMIT",
+                    "En fazla " + props.maxCourses() + " ders oluşturulabilir.", String.valueOf(props.maxCourses()));
+        }
         AcCourse c = new AcCourse();
+        if (r.plannedSessions() != null) {
+            c.setPlannedSessions(r.plannedSessions().shortValue());
+        }
         c.setOwnerId(userId);
         c.setCode(AcademicianService.clean(r.code(), "code", 30, false));
         c.setName(AcademicianService.clean(r.name(), "name", 200, true));
@@ -111,7 +126,10 @@ public class CourseService {
         if (audience) {
             validateAudience(c.getFaculty(), c.getDepartment(), c.getGrade());
         }
-        boolean limitChanged = p.absenceLimitType() != null || p.absenceLimitValue() != null;
+        boolean limitChanged = p.absenceLimitType() != null || p.absenceLimitValue() != null || p.plannedSessions() != null;
+        if (p.plannedSessions() != null) {
+            c.setPlannedSessions(p.plannedSessions() == 0 ? null : p.plannedSessions().shortValue());
+        }
         applyLimit(c, p.absenceLimitType(), p.absenceLimitValue());
         if (p.status() != null) {
             try {
@@ -123,7 +141,7 @@ public class CourseService {
         c.setUpdatedAt(Instant.now());
         AcCourse saved = courses.save(c);
         if (limitChanged) {
-            warnings.recompute(saved.getId()); // sinir degisti: uyari duzeyleri yeniden hesaplanir
+            warnings.recomputeLowering(saved.getId(), null); // sinir/planlanan degisti: duzeyler yeniden hesaplanir (dusebilir)
         }
         return detail(saved);
     }
@@ -187,12 +205,17 @@ public class CourseService {
         Integer v = c.getAbsenceLimitValue() == null ? null : c.getAbsenceLimitValue().intValue();
         String t = c.getAbsenceLimitType() == null ? null : c.getAbsenceLimitType().name();
         return new CourseView(c.getId(), c.getCode(), c.getName(), c.getTerm(), c.getFaculty(), c.getDepartment(), c.getGrade(),
-                limitOf(c), t, v, c.getStatus().name(), slotViews, enrolled, sessionCount, c.getCreatedAt());
+                limitOf(c), t, v, c.getStatus().name(),
+                c.getPlannedSessions() == null ? null : c.getPlannedSessions().intValue(), slotViews, enrolled, sessionCount, c.getCreatedAt());
     }
 
     static LimitView limitOf(AcCourse c) {
-        return c.getAbsenceLimitType() == null || c.getAbsenceLimitValue() == null ? new LimitView(null, null)
-                : new LimitView(c.getAbsenceLimitType().name(), c.getAbsenceLimitValue().intValue());
+        if (c.getAbsenceLimitType() == null || c.getAbsenceLimitValue() == null) {
+            return new LimitView(null, null, null);
+        }
+        Integer value = c.getAbsenceLimitValue().intValue();
+        return new LimitView(c.getAbsenceLimitType().name(), value, AbsencePolicy.allowedAbsences(c.getAbsenceLimitType(), value,
+                c.getPlannedSessions() == null ? null : c.getPlannedSessions().intValue()));
     }
 
     static SlotView slotView(AcCourseSlot s) {

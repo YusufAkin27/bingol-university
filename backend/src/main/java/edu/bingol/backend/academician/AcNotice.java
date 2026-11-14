@@ -42,6 +42,9 @@ public class AcNotice {
 
     private Long createdBy;
 
+    /** Yumusak silme: listelerde gorunmez, sinir sayaclari sayar. */
+    private Instant deletedAt;
+
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 }

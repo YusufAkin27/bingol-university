@@ -64,6 +64,14 @@ public class DbMaintenanceJob {
     @Value("${app.dbmaint.session-days:100}")
     private int sessionDays = 100;
 
+    /** Akademisyen duyuru dosyasi temizligi (testlerde/modul yoksa atlanir). */
+    private edu.bingol.backend.academician.NoticeFileService noticeFileSweeper;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    void setNoticeFileSweeper(edu.bingol.backend.academician.NoticeFileService noticeFileSweeper) {
+        this.noticeFileSweeper = noticeFileSweeper;
+    }
+
     void setSessionDays(int days) {
         this.sessionDays = days;
     }
@@ -179,6 +187,9 @@ public class DbMaintenanceJob {
         out.put("user_session", safe("user_session", () -> userSessions(now)));
         out.put("crash_event", safe("crash_event", () -> crashEvents(now)));
         out.put("crash_group", safe("crash_group", () -> crashGroups(now)));
+        // akademisyen duyuru dosyalari: 24 saatten eski bagsiz (bekleyen) yuklemeler (satir + depo nesnesi)
+        out.put("ac_notice_file_pending", safe("ac_notice_file_pending",
+                () -> noticeFileSweeper == null ? 0 : noticeFileSweeper.sweepStalePending(500)));
         log.info("dbmaint tamam: {}", out);
         return out;
     }

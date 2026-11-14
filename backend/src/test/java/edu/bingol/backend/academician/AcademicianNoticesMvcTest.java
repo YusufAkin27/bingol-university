@@ -94,7 +94,7 @@ class AcademicianNoticesMvcTest extends AcademicianMvcBase {
         // baska hoca silemez
         User other = lecturer("Baska");
         expectError(other, delete("/api/academician/notices/" + noticeRepo.findAll().stream().filter(n -> n.getCourseId().equals(courseId)).findFirst().orElseThrow().getId()),
-                404, "AC_COURSE_NOT_FOUND");
+                404, "AC_NOTICE_NOT_FOUND");
         // yonetici salt okunur
         assertEquals(6, call(admin(), get("/api/admin/academicians/courses/" + courseId + "/notices?size=50"), 200).get("items").size());
     }

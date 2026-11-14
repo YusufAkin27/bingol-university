@@ -23,6 +23,19 @@ public interface AcSessionRepository extends JpaRepository<AcSession, Long> {
 
     long countByCourseId(Long courseId);
 
+    /** Dersin en son acilan oturumu (cift tiklama korumasi). */
+    @Query("SELECT s FROM AcSession s WHERE s.courseId = :c ORDER BY s.id DESC")
+    List<AcSession> latestOf(@Param("c") Long courseId, Pageable page);
+
+    /** Derslerim: birden cok dersin oturumlari (eski -> yeni). Sinirli. */
+    @Query("SELECT s FROM AcSession s WHERE s.courseId IN :ids ORDER BY s.courseId, s.lessonDate, s.id")
+    List<AcSession> ofCourses(@Param("ids") Collection<Long> courseIds, Pageable page);
+
+    /** Yetkisi alinan akademisyenin hala acik oturumlari. */
+    @Query("SELECT s.id FROM AcSession s WHERE s.status = edu.bingol.backend.academician.AcSession.Status.OPEN AND s.courseId IN "
+            + "(SELECT c.id FROM AcCourse c WHERE c.ownerId = :owner)")
+    List<Long> openIdsOfOwner(@Param("owner") Long ownerId, Pageable page);
+
     long countByCourseIdAndStatus(Long courseId, AcSession.Status status);
 
     /**

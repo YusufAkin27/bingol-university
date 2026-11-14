@@ -453,14 +453,38 @@ public class DevSeedRunner implements ApplicationRunner {
             jdbc.update("INSERT INTO ac_course_slot (course_id, day_of_week, start_time, end_time, room) VALUES (?, 1, '09:00', '11:00', 'DEV-101')", course);
             jdbc.update("INSERT INTO ac_course_slot (course_id, day_of_week, start_time, end_time, room) VALUES (?, 3, '13:00', '15:00', 'DEV-102')", course);
         }
-        for (int i = 1; i <= 4 && i < studentIds.size(); i++) { // PERF kullanicisi + ilk uc ogrenci kayitli
-            Long sid = studentIds.get(i);
+        // Mevcut tohum ogrencilerinin fakulte/bolum adlari ASCII'dir (katalogda yok): bolum suzgeci/toplu kayit onlarla eslesmez.
+        // Mevcut kullanicilar degistirilmez; katalogla BIREBIR ayni degerli 3 ek ogrenci eklenir.
+        List<Long> enrol = new ArrayList<>(studentIds.subList(1, Math.min(5, studentIds.size())));
+        for (int i = 1; i <= 3; i++) {
+            enrol.add(ensureCatalogStudent("seed.katalog" + i + "@bingol.edu.tr", "Katalog Ogrenci " + i));
+        }
+        for (Long sid : enrol) {
             if (firstLong("SELECT id FROM ac_enrollment WHERE course_id = ? AND student_id = ?", course, sid) == null) {
                 jdbc.update("INSERT INTO ac_enrollment (course_id, student_id) VALUES (?, ?)", course, sid);
             }
         }
         log.info("DEV TOHUM: akademisyen {} (onayli, ders SEED101) ve {} (bekleyen); sifre DEV_PASSWORD",
                 ACADEMICIAN_EMAIL, PENDING_ACADEMICIAN_EMAIL);
+    }
+
+    /** Fakulte/bolum katalogdaki yazimla birebir ("Mühendislik Fakültesi" / "Bilgisayar Mühendisliği"), 2. sinif. */
+    private Long ensureCatalogStudent(String email, String name) {
+        User u = users.findByEmail(email).orElse(null);
+        if (u == null) {
+            u = new User();
+            u.setEmail(email);
+            u.setPasswordHash(encoder.encode(DEV_PASSWORD));
+            u.setDisplayName(name);
+            u.setEmailVerified(true);
+            u.setRole(Role.USER);
+            u.setFaculty("Mühendislik Fakültesi");
+            u.setDepartment("Bilgisayar Mühendisliği");
+            u.setClassYear((short) 2);
+            u.setLastSeenAt(Instant.now());
+            u = users.save(u);
+        }
+        return u.getId();
     }
 
     private Long ensureStaff(String email, String name) {

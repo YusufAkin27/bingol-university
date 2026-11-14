@@ -12,6 +12,8 @@ public interface AcEnrollmentRepository extends JpaRepository<AcEnrollment, Long
 
     boolean existsByCourseIdAndStudentId(Long courseId, Long studentId);
 
+    java.util.Optional<AcEnrollment> findByCourseIdAndStudentId(Long courseId, Long studentId);
+
     long countByCourseId(Long courseId);
 
     /** Kayitli ogrenci kimlikleri (kimlige gore artan imec). */
@@ -24,6 +26,9 @@ public interface AcEnrollmentRepository extends JpaRepository<AcEnrollment, Long
 
     @Query("SELECT e FROM AcEnrollment e WHERE e.courseId = :c ORDER BY e.studentId")
     List<AcEnrollment> ofCourse(@Param("c") Long courseId, Pageable page);
+
+    @Query("SELECT e FROM AcEnrollment e WHERE e.studentId = :s ORDER BY e.courseId")
+    List<AcEnrollment> ofStudent(@Param("s") Long studentId, Pageable page);
 
     /** Ogrencinin kayitli oldugu dersler (ders kimlikleri). */
     @Query("SELECT e.courseId FROM AcEnrollment e WHERE e.studentId = :s ORDER BY e.courseId")

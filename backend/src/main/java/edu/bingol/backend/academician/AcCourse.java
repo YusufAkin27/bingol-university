@@ -54,6 +54,9 @@ public class AcCourse {
 
     private Short absenceLimitValue;
 
+    /** Planlanan ders sayisi (1..400); yuzde siniri bundan devamsizlik adedine cevrilir. */
+    private Short plannedSessions;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)
     private Status status = Status.ACTIVE;

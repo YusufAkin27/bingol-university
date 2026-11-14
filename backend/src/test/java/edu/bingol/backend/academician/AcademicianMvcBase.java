@@ -80,6 +80,16 @@ abstract class AcademicianMvcBase {
 
     // ---- kullanicilar ----
 
+    /** Yalniz kucuk harf (otomatik onay kuralina uyan yerel kisim icin). */
+    static String alpha() {
+        StringBuilder b = new StringBuilder();
+        java.util.Random r = ThreadLocalRandom.current();
+        for (int i = 0; i < 10; i++) {
+            b.append((char) ('a' + r.nextInt(26)));
+        }
+        return b.toString();
+    }
+
     static String rnd() {
         return UUID.randomUUID().toString().substring(0, 8);
     }
@@ -119,7 +129,7 @@ abstract class AcademicianMvcBase {
 
     /** Ad-soyad kalibli kurumsal adresle basvurur: otomatik ONAYLI akademisyen. */
     User lecturer(String name) {
-        User u = plainUser("hoca." + rnd() + "@bingol.edu.tr", name);
+        User u = plainUser("hoca." + alpha() + "@bingol.edu.tr", name);
         JsonNode r = call(u, post("/api/academician/apply").contentType("application/json")
                 .content("{\"title\":\"Dr.\",\"firstName\":\"Ali\",\"lastName\":\"Veli\"}"), 200);
         assertEquals("APPROVED", r.get("status").asText());
