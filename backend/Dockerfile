@@ -9,7 +9,7 @@ COPY src ./src
 RUN mvn -q -B -DskipTests package
 
 # --- calistirma (yalnizca JRE, root olmayan kullanici) ---
-FROM eclipse-temurin:17-jre@sha256:4faa9eaf440514dd4f7ef71fecb92526e13679aea039bed5d2fc98e885c60dee
+FROM eclipse-temurin:25-jre@sha256:ecdc0adb37bde1a281c4d245a3cd535004b1fc8322d560f5b09463b248c81df0
 WORKDIR /app
 # ffmpeg/ffprobe: gonderi videosu yeniden kodlama (app.media.transcode.*, docs/MEDIA_PIPELINE.md). Minimal kurulum;
 # imaj ~+150-250 MB. ffmpeg olmasa da uygulama calisir (donusturme otomatik kapanir).
