@@ -1,0 +1,36 @@
+# Akademisyen alanı ve QR ile yoklama (backend)
+
+Paket: `edu.bingol.backend.academician`. Migration: V1900-V1904 (indeks öneki `ak1900_`; yalnız yeni tablolar, eski imaj yeni şemada açılır). Tablolar ve silme kararları: `docs/DATABASE.md` bölüm 16 ve 18. Sözleşme ayrıntısı OpenAPI'dedir (`docs/openapi.json`).
+
+## Kimlik ve onay
+- Akademisyen = sıradan `app_user` + `academician` satırı. Yeni `Role` yok, JWT değişmedi. Tek kapı `AcademicianGuard`: onaylı değilse 403 `ACADEMICIAN_NOT_APPROVED` (`/me` ve `/apply` hariç). Başkasının ders/oturumu 404.
+- Otomatik onay `app.academician.auto-approve` = `STAFF_PATTERN` (varsayılan) | `NEVER`. STAFF_PATTERN: e-posta kodla doğrulanmış (ertelenmiş/Apple gizli adresi değil), alan adı tam `bingol.edu.tr`, yerel kısım harf içerir ve 6-12 haneli numara değil, `grade`/`classYear` boş. Aksi PENDING. Otomatik onayda yöneticilere `notif.academician.autoApproved`. Reddedilen yeniden başvurabilir (PENDING); iptal edilen (REVOKED) 403 `ACADEMICIAN_REVOKED`.
+- Yönetici: `/api/admin/academicians` (okuma `users.read`, yazma `users.write`): liste (`status` çoklu, `approvalMode`, imleç = son `userId`), detay (`@AuditRead`, e-posta `users.pii` yoksa maskeli), `approve`, `reject {reason}`, `revoke {reason}`, dersler/yoklama/duyuru okuma, duyuru dosyası indirme. Başvurana uygulama içi bildirim + e-posta.
+
+## Doner QR
+`bingol-lesson:{oturumId}.{adim}.{mac}`, adım 5 sn, güncel + önceki adım kabul, `MessageDigest.isEqual`, anahtar `HMAC(jwt.secret, "bingol-lesson-v1")`. `POST /api/attendance/scan {code}` → 200 `{status: MARKED|ALREADY|PENDING, courseName, lessonDate}`; 422 `ATTENDANCE_CODE_INVALID`, 403 `ATTENDANCE_NOT_ENROLLED`, 403 `ATTENDANCE_REVOKED`, 429 (kullanıcı 10/dk, IP 60/dk). Kontrol sırası: ayrıştır → MAC/pencere → oturum açık → kayıtlı mı (değilse bekleyen istek mantığı) → ekle. Yazma tekil kısıtla idempotenttir.
+- Kayıtlı olmayan öğrenci geçerli kod okutursa `ac_scan_request` (PENDING) ve 200 `PENDING`. Hoca `POST /api/academician/sessions/{id}/pending/{studentId}/accept` (derse ekler + QR ile "var" sayar, `marked_at = scanned_at`, `notif.academician.enrolled`) ya da `.../dismiss`. Reddedilen aynı oturumda tekrar okutursa 403. Admin/akademisyen hesapları ve oturum başına 200'den fazla bekleyen istek 403 (`app.academician.pending-scan-cap`).
+
+## Canlı ekran
+`GET /api/academician/sessions/{id}/live`: `{status, serverNowMs, stepSeconds, codes[3], presentCount, enrolledCount, newRecords, pendingScans}`. **`newRecords` oturumun tüm yoklama satırlarını (kaldırılanlar `revoked:true`) verir; `after` parametresi kabul edilir ama yok sayılır.** Neden: kaldırma/geri alma mevcut satırı değiştirir, kimlik imeci bunu kaçırırdı; satır sayısı ≤2000 olduğundan tam liste güvenlidir. İstemci `studentId`'ye göre birleştirir.
+
+## Hocanın son sözü
+`PUT /sessions/{id}/records/{studentId}` (MANUAL; kaldırılmışı geri getirir; geçerli satırda idempotent) ve `DELETE` (yumuşak silme: `revoked_at/by`; kaydı olmayana no-op 204). Açık ve kapalı oturumda çalışır. Kaldırılan satır her yerde devamsız sayılır; öğrenci aynı oturumda tarayınca 403 `ATTENDANCE_REVOKED`. Matris: `marks: {"<oturumId>": PRESENT_QR|PRESENT_MANUAL|REVOKED|ABSENT}`; CSV: `Var (QR)`, `Var (elle)`, `Silindi`, `Yok` (BOM, CRLF, formül kaçışı).
+
+## Devamsızlık sınırı ve otomatik uyarı
+`AbsencePolicy.level` tek fonksiyon: COUNT `devamsızlık >= değer` sınıra ulaşıldı (duzey 2 = `overLimit`), bir devamsızlık daha ulaştırırsa ve en az bir devamsızlığı varsa risk (duzey 1 = `atRisk`); PERCENT tam sayı karşılaştırması `devamsızlık*100 >= yüzde*oturum`. Oturum kesinleşince (açık kapatma ya da süresi dolmuş oturumun ilk gözlemi: `SessionFinalizer`, koşullu `UPDATE ... WHERE status='OPEN'`) ve kayıt düzeltmede/sınır değişiminde `AbsenceWarningService` her düzeyi `ac_enrollment.warned_level` ile **bir kez** bildirir (`notif.academician.absenceWarning|absenceExceeded`); düzey düşerse sessizce düşürülür. Uyarı hesabı yalnız kapalı oturumları sayar.
+
+## Duyurular (7 sabit tür) ve dosyalar
+`POST /api/academician/courses/{id}/notices {type, title?, note?, eventAt?, fileIds?}` (alan kuralları `NoticeRules`; kural dışı alan 400 `AC_FIELD_INVALID`): LESSON_STARTED, ATTENDANCE_STARTED (alan yok), EXAM/ASSIGNMENT (title + eventAt), MATERIAL (title), LESSON_CANCELLED (eventAt, note), ROOM_CHANGED (title = yeni derslik, eventAt opsiyonel). Sınırlar: günde 20/ders, LESSON_STARTED ve ATTENDANCE_STARTED tür başına 10 dk'da bir (429 `NOTICE_TOO_FREQUENT`), `POST .../sessions {notify:true}` ATTENDANCE_STARTED gönderir. Teslimat: `NotificationService.sendTemplatedBulk` + `FanoutNotifier` (tür `ANNOUNCEMENT`, alt tür `EXAM_REMINDER` = kullanıcının "akademik duyurular" tercihi; push veri yükü `{type: ACADEMICIAN_COURSE, courseId, noticeType}`).
+
+**Dosya yükleme (sohbet eki deseni: önce yükle, sonra kimlikle bağla):**
+1. `POST /api/academician/courses/{id}/notice-files`, `multipart/form-data`, tek parça adı `file`, her istek tek dosya → 201 `{id, name, contentType, sizeBytes}` (bekleyen dosya). Örnek: `curl -H "Authorization: Bearer $T" -F "file=@odev.pdf" .../notice-files`.
+2. `POST .../notices` gövdesinde `fileIds: [id, ...]` (en çok 5; yalnız EXAM/ASSIGNMENT/MATERIAL). Bildirim, duyuru ve tüm dosyalar yazıldıktan sonra gider.
+3. `DELETE /api/academician/notice-files/{fileId}` bekleyen dosyayı siler; bağsız dosyalar 24 saatte temizlenir.
+Doğrulama: uzantı beyaz liste (pdf doc docx ppt pptx xls xlsx txt png jpg jpeg) VE içerik imzası (`NoticeFileSniffer`: PDF `%PDF-`, OOXML zip + `[Content_Types].xml` + kök dizin + makro yok, OLE imzası + akış adı, PNG/JPEG sihirli bayt, txt'de ikili/html/betik yok); tür sunucuca belirlenir; ad temizlenir. Hatalar 422 `NOTICE_FILE_TYPE_NOT_ALLOWED`, 422 `NOTICE_FILE_LIMIT`, 422 `NOTICE_STORAGE_CAP` (`app.academician.course-storage-cap-mb`, 500), 413 `NOTICE_FILE_TOO_LARGE` (20 MB). Depolama: mevcut `PrivateMediaStore` (kova `acnotice`, `<uuid>.bin`; `storeBlob` eklendi), diskte `BlobCipher` ile (yapılandırılmışsa) şifreli; bayt veritabanında değil, URL ile erişilemez. İndirme: sahip hoca `GET /api/academician/notices/{n}/files/{f}`, kayıtlı öğrenci `GET /api/my-courses/{c}/notices/{n}/files/{f}`, yönetici `GET /api/admin/academicians/notices/{n}/files/{f}` (`@AuditRead`); başkası 404; `Content-Disposition: attachment`, `nosniff`, `no-store`, `CSP: default-src 'none'; sandbox`. Duyuru/ders/hoca silinince depo nesneleri de silinir.
+
+## Öğrenci uçları
+`GET /api/my-courses` (ders + sayaçlar + `limit` + `atRisk/overLimit`), `GET /api/my-courses/{id}/notices` (kayıtlı değilse 403), `GET /api/my-courses/upcoming` (gelecekteki sınav/ödev/iptal/derslik değişikliği, en çok 50).
+
+## Bilinen sınırlar
+Uzaktaki arkadaşa kodun gerçek zamanlı iletilmesi çözülmedi. Eski OLE (doc/xls/ppt) içindeki makro sezilmez (dosya yalnız indirilir). Zamanlayıcı yok: oturum süre dolumu ve uyarılar ilk gözlemde işlenir.

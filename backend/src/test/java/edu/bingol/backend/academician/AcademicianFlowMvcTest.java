@@ -392,6 +392,24 @@ class AcademicianFlowMvcTest extends AcademicianMvcBase {
         assertFalse(autoIds.contains(p1.getId()));
     }
 
+    @Test
+    void viewerAdminReadsMaskedEmailsButCannotDecide() throws Exception {
+        User viewer = admin();
+        viewer.setAdminProfile(edu.bingol.backend.admin.rbac.AdminProfile.VIEWER);
+        users.save(viewer);
+        User p = plainUser("aday." + rnd() + "@gmail.com", "Aday");
+        call(p, postJson("/api/academician/apply", obj().put("title", "Dr.").put("firstName", "X").put("lastName", "Y")), 200);
+        JsonNode page = call(viewer, get("/api/admin/academicians?status=PENDING&size=50"), 200);
+        String email = findEmail(page, p.getId());
+        assertNotNull(email);
+        assertTrue(email.contains("***"), "e-posta maskeli olmali: " + email);
+        assertFalse(email.equals(p.getEmail()));
+        // yazma izni yok (users.write): onay/ret/iptal 403 ADMIN_PERMISSION_DENIED
+        expectError(viewer, post("/api/admin/academicians/" + p.getId() + "/approve"), 403, "ADMIN_PERMISSION_DENIED");
+        expectError(viewer, postJson("/api/admin/academicians/" + p.getId() + "/reject", obj().put("reason", "x")), 403, "ADMIN_PERMISSION_DENIED");
+        assertEquals("PENDING", academicianRepo.findById(p.getId()).orElseThrow().getStatus().name());
+    }
+
     private static String findEmail(JsonNode page, long userId) {
         for (JsonNode n : page.get("items")) {
             if (n.get("userId").asLong() == userId) {

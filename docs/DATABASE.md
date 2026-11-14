@@ -237,6 +237,7 @@ Kaynak: `profile/AccountDataPurger` (`DELETES`, `SCRUBS`, `HANDLED_ELSEWHERE`, g
 | **Sil (OWNER satırı, yeni)** | `community_member` OWNER satırı | Devir: `CommunityAccountListener`; kapatılan kulüpte kalan satır gece işiyle (`deleted_owner_rows`) silinir |
 | **Anonimleştir** | `poll_vote.user_id`→NULL, `poll.created_by`→NULL; metinleri temizlenenler: `feedback`, `support_ticket`, `support_message`, `moderation_appeal`, `report.note`, `event_application`, `event_certificate.holder_name` | Kullanıcı satırı anonim (`deleted-<id>@deleted.invalid`) |
 | **Başka bileşen** | `activity_daily`, `analytics_event` (ActivityTracker); `event_rsvp` (ProfileService); `tt_*` (AcademicAccountPurger); `post`/`post_like`/`post_media`/`user_follow*` (Post/SocialAccountPurger); `profile_privacy` (AvatarCleanups); `conversation_member` (odadan çıkış); `community.owner_id` (devir/kapatma) | |
+| **Başka bileşen (akademisyen alanı, V1900-V1904)** | `academician.user_id` (sil), `academician.reviewed_by` (NULL), `ac_course.owner_id` (dersler + oturum/yoklama/kayıt/saat/duyuru/duyuru dosyası satırları ve depo nesneleri silinir), `ac_enrollment.student_id` (sil), `ac_attendance.student_id` (sil), `ac_attendance.marked_by` ve `revoked_by` (NULL), `ac_notice.created_by` (NULL), `ac_notice_file.uploaded_by` (NULL), `ac_scan_request.student_id` (sil), `ac_scan_request.decided_by` (NULL) | `AcademicianAccountPurger` (çocuk satırlar açıkça silinir; FK CASCADE'e güvenilmez). `AccountDataPurger.HANDLED_ELSEWHERE` kayıtlıdır. Dışa aktarım: `academician`, `courseAttendance` bölümleri |
 | **Yasal saklama / kayıt izi** | `legal_acceptance` (suresiz, ispat); `moderation_strike`, `suspend_recommendation` (ihlal geçmişi sıfırlanmasın); `message.sender_id`, `message_attachment.uploader_id`, `community_post.author_id`, `conversation.created_by` (başkalarının bağlamı; yazar anonim); `event_attendance` (anonim istatistik); `club_audit` ve `message_access_audit` (`target_user_id`, 730 gün; `message_access_audit` ekleme-yalnız tetikleyici); yönetici eylem sütunları (`admin_audit.admin_id` 365 gün vb.) | Tam liste ve gerekçe: `AccountDataPurger.RETAINED` |
 
 Saklama süresi değişiklikleri (W2-F):
@@ -265,3 +266,16 @@ Saklama süresi değişiklikleri (W2-F):
 | `moderation_strike.inherited` | yeniden kayitta defterden devralinan strike | strike satiri gibi (yasal saklama / ihlal gecmisi) |
 | `profanity_term.category`, `profanity_hit_log.category` | kategori (PROFANITY/HATE/TERROR/SELF_HARM) | `profanity_hit_log` 90 gun |
 | `app_user.verification_deferred`, `app_user.verification_mailed_at` (V1260) | kota asiminda ertelenmis e-posta dogrulama bayragi ve son kod postasi zamani (kisisel veri degil; satirin kendisi hesap verisidir) | dogrulanmayan ertelenmis hesap `app.auth.deferred-verification.retention-days` (14) gun sonra `DeferredVerificationJob.purgeExpired` ile hesap silme (anonimlestirme) yolundan gecer; indeks `qd_app_user_deferred_idx` (kismi) |
+
+## 18. Akademisyen alanı (V1900-V1904, indeks öneki `ak1900_`)
+
+| Tablo | Amaç | Büyüme / saklama |
+|---|---|---|
+| `academician` | Akademisyen başvurusu/profili (`user_id` PK; durum PENDING/APPROVED/REJECTED/REVOKED; `approval_mode` AUTO/ADMIN) | kullanıcı başına 1 satır; hesap silinince silinir |
+| `ac_course`, `ac_course_slot` | Akademisyenin dersleri ve haftalık saatleri (`department` = hedef kitle; devamsızlık sınırı COUNT/PERCENT) | ders başına ≤30 saat; ders silinince çocuklarıyla gider |
+| `ac_enrollment` | Derse kayıtlı öğrenci (UNIQUE `(course_id, student_id)`); `warned_level` otomatik devamsızlık uyarısı tekrarını engeller | ders başına ≤2000 |
+| `ac_session`, `ac_attendance` | Yoklama oturumu (süre `expires_at` ile tembel dolar) ve yoklama satırı (UNIQUE `(session_id, student_id)`; `method` QR/MANUAL; `revoked_at/by` hocanın yumuşak silmesi: devamsız sayılır, aynı oturumda tekrar taranamaz) | ders başına ≤400 oturum okunur; ham konum YOK |
+| `ac_scan_request` | Kayıtlı olmayan öğrencinin geçerli kodu okutması: bekleyen istek (UNIQUE `(session_id, student_id)`); oturum başına en çok `app.academician.pending-scan-cap` (200) bekleyen | oturumla birlikte silinir |
+| `ac_notice`, `ac_notice_file` | Ders duyuruları (7 sabit tür) ve ekleri. Baytlar veritabanında DEĞİL: `PrivateMediaStore` kovası `acnotice` (`<uuid>.bin`, diskte `BlobCipher` ile şifreli); `storage_key` yalnız sunucuda kalır. Bağsız (bekleyen) dosyalar 24 saat sonra bir sonraki yüklemede silinir | duyuru başına ≤5 dosya, dosya ≤20 MB, ders başına `app.academician.course-storage-cap-mb` (500) |
+
+Yoklama kodu durumsuzdur (`LessonCodeService`, tablo yok). Hesap silme kararları yukarıdaki matriste (bölüm 16).

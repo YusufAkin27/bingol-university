@@ -216,6 +216,7 @@ public class AcademicianController {
     }
 
     /** Web ekrani 2.5 sn'de bir yoklar (dakikada ~24); 240/dk ust sinir. */
+    @io.swagger.v3.oas.annotations.Operation(summary = "Canli yoklama ekrani (2.5 sn'de bir yoklanir)", description = "codes: guncel 5 sn'lik adim + sonraki iki kod (sunucu saatiyle fromMs/untilMs); oturum kapali/suresi dolmussa bos. newRecords: oturumun TUM yoklama satirlari (kaldirilanlar revoked=true; id'ye gore artan) - `after` parametresi kabul edilir ama YOK SAYILIR: kaldirma/geri alma mevcut satiri degistirdigi icin kimlik imeci guncelleme kacirirdi, bu yuzden her yoklamada tam liste doner ve istemci studentId'ye gore birlestirir (kayit en cok 2000). presentCount kaldirilanlari saymaz. pendingScans: kayitli olmayip kod okutan ve karar bekleyen ogrenciler (yalniz PENDING).")
     @GetMapping("/sessions/{id}/live")
     public LiveView live(@PathVariable Long id, @RequestParam(required = false) Long after) {
         Long uid = CurrentUser.id();
@@ -238,6 +239,7 @@ public class AcademicianController {
     }
 
     /** Kayitli olmayan ogrenciyi derse ekler ve bu oturumda "var" sayar (QR, marked_at = scanned_at). Idempotent. */
+    @io.swagger.v3.oas.annotations.Operation(summary = "Bekleyen ogrenciyi derse ekle ve var say", description = "Ogrenciyi derse ekler (yoksa), bu oturumda QR yontemiyle ve scanned_at zamaniyla 'var' sayar, istegi ACCEPTED yapar, ogrenciye bildirim gonderir. Idempotent; oturum kapaliyken de calisir.")
     @PostMapping("/sessions/{id}/pending/{studentId}/accept")
     public RecordView acceptPending(@PathVariable Long id, @PathVariable Long studentId) {
         Long uid = CurrentUser.id();
@@ -291,6 +293,7 @@ public class AcademicianController {
 
     // ---- ders duyurulari ----
 
+    @io.swagger.v3.oas.annotations.Operation(summary = "Ders duyurusu gonder (7 sabit tur)", description = "type: LESSON_STARTED, ATTENDANCE_STARTED (alan yok), EXAM/ASSIGNMENT (title + eventAt zorunlu), MATERIAL (title; tarih yok), LESSON_CANCELLED (eventAt zorunlu, title yok), ROOM_CHANGED (title = yeni derslik; eventAt istege bagli). Kural disi alan 400 AC_FIELD_INVALID. fileIds yalniz EXAM/ASSIGNMENT/MATERIAL. Ders basina gunde 20; LESSON_STARTED/ATTENDANCE_STARTED tur basina 10 dakikada bir (429 NOTICE_TOO_FREQUENT).")
     @PostMapping("/courses/{id}/notices")
     @ResponseStatus(HttpStatus.CREATED)
     public NoticeView sendNotice(@PathVariable Long id, @Valid @RequestBody NoticeRequest r) {
@@ -311,6 +314,7 @@ public class AcademicianController {
      * Duyuru dosyasi yukler (multipart/form-data, tek parca "file"; her cagri TEK dosya). Donen id, duyuru olusturulurken
      * NoticeRequest.fileIds ile baglanir. 30/dk. Bekleyen dosya 24 saat icinde baglanmazsa silinir.
      */
+    @io.swagger.v3.oas.annotations.Operation(summary = "Duyuru dosyasi yukle (once yukle, sonra kimlikle bagla)", description = "multipart/form-data, tek parca adi `file`; her istek TEK dosya. Donen `id`, POST /courses/{id}/notices govdesindeki `fileIds` ile baglanir (EXAM/ASSIGNMENT/MATERIAL, en cok 5). Izinli: pdf doc docx ppt pptx xls xlsx txt png jpg jpeg; uzanti VE icerik imzasi dogrulanir, tur sunucuca belirlenir. 422 NOTICE_FILE_TYPE_NOT_ALLOWED / NOTICE_FILE_LIMIT / NOTICE_STORAGE_CAP, 413 NOTICE_FILE_TOO_LARGE (20 MB). Baglanmayan dosya 24 saat sonra silinir.")
     @PostMapping(value = "/courses/{id}/notice-files", consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.CREATED)
     public FileView uploadNoticeFile(@PathVariable Long id, @RequestPart("file") MultipartFile file) {
