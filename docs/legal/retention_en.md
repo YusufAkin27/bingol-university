@@ -46,9 +46,9 @@ This summary shows how long your personal data is kept and what happens afterwar
 | Administrator action log (including IP) | 365 days | Deleted |
 | Message-access log and club administration action log | 730 days (entries are append-only and cannot be altered) | Deleted when the period ends |
 | Academician application and profile (title, name, unit, decision information, reason) | While the account is open (no separate period) | Deleted when the account is deleted |
-| Course enrolment, attendance session and rows, pending scan request, absence-warning status | Until the course is deleted or the academician's or student's account is deleted; **there is no automatic retention period** (even if a student is removed from the course, past attendance rows may remain until the course is deleted) | All deleted when the course is deleted; the student's rows are deleted when the student's account is deleted |
-| Course notices and file attachments | Until the course or notice is deleted or the academician's account is deleted | Records and the (encrypted) files are deleted from storage |
-| Uploaded file not attached to a notice | 24 hours | Deleted |
+| Course enrolment, attendance session and rows, pending scan request, absence-warning status | Until the course is deleted or the academician's or student's account is deleted; **there is no automatic retention period** (even if a student is removed from the course, past attendance rows may remain until the course is deleted; the academician can delete a session together with its records) | All deleted when the course is deleted; the student's rows are deleted when the student's account is deleted |
+| Course notices and file attachments | Until the course or the academician's account is deleted; a notice the academician deletes is shown to nobody, its attachments are deleted from storage and its record stays marked as deleted for sending limits | Records and the (encrypted) files are deleted when the course or account is deleted |
+| Uploaded file not attached to a notice | In the next scheduled cleanup, normally within 24 hours | Deleted |
 | Student directory | No separate copy is kept (the current profile fields of the account are shown) | No longer shown in the directory when the account is deleted |
 | Contact matching digests | **Not stored** | — |
 | Location | **Not collected or stored** (the app does not ask for location permission) | — |

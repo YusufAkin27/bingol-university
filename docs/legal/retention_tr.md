@@ -44,9 +44,9 @@ Bu özet, kişisel verilerinizin ne kadar süre saklandığını ve süre sonund
 | Yönetici işlem kaydı (IP dahil) | 365 gün | Silinir |
 | Mesaj erişim kaydı ve kulüp yönetim işlem kaydı | 730 gün (kayıtlar yalnız eklenir, değiştirilemez) | Süre sonunda silinir |
 | Akademisyen başvurusu ve profili (unvan, ad, birim, karar bilgisi, gerekçe) | Hesap açık olduğu sürece (ayrı süre yok) | Hesap silinince silinir |
-| Ders kaydı, yoklama oturumu ve satırları, bekleyen okutma isteği, devamsızlık uyarı durumu | Ders silinene, akademisyenin veya öğrencinin hesabı silinene kadar; **otomatik bir saklama süresi yoktur** (öğrenci dersten çıkarılsa da geçmiş yoklama satırları ders silinene kadar kalabilir) | Ders silinince tümü silinir; öğrenci hesabı silinince öğrencinin satırları silinir |
-| Ders duyuruları ve dosya ekleri | Ders veya duyuru silinene ya da akademisyenin hesabı silinene kadar | Kayıtlar ve (şifreli) dosyalar depodan silinir |
-| Duyuruya bağlanmamış yüklenen dosya | 24 saat | Silinir |
+| Ders kaydı, yoklama oturumu ve satırları, bekleyen okutma isteği, devamsızlık uyarı durumu | Ders silinene, akademisyenin veya öğrencinin hesabı silinene kadar; **otomatik bir saklama süresi yoktur** (öğrenci dersten çıkarılsa da geçmiş yoklama satırları ders silinene kadar kalabilir; akademisyen bir oturumu kayıtlarıyla birlikte silebilir) | Ders silinince tümü silinir; öğrenci hesabı silinince öğrencinin satırları silinir |
+| Ders duyuruları ve dosya ekleri | Ders veya akademisyenin hesabı silinene kadar; akademisyenin sildiği duyuru kimseye gösterilmez, ekleri depodan silinir, kaydı gönderim sınırları için silinmiş işaretiyle kalır | Ders/hesap silinince kayıtlar ve (şifreli) dosyalar silinir |
+| Duyuruya bağlanmamış yüklenen dosya | Bir sonraki zamanlanmış temizlikte, normalde 24 saat içinde | Silinir |
 | Öğrenci rehberi | Ayrı kopya tutulmaz (hesaptaki mevcut profil alanları gösterilir) | Hesap silinince rehberde görünmez |
 | Rehber eşleştirme özetleri | **Saklanmaz** | — |
 | Konum | **Toplanmaz ve saklanmaz** (uygulama konum izni istemez) | — |
