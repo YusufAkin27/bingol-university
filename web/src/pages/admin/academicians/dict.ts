@@ -180,7 +180,7 @@ const dict: Record<string, string> = {
   'admin.acad.notices.eventAt': 'Tarih',
   'admin.acad.notices.files': 'Ekler',
   'admin.acad.notices.download': 'İndir',
-  'admin.acad.notices.downloadFile': '{name} dosyasını indir',
+  'admin.acad.notices.downloadSuffix': '- dosyayı indir',
   'admin.acad.notices.downloadError': 'Dosya indirilemedi',
   'admin.acad.notices.downloadNote': 'Dosya indirmeleri denetim kaydına yazılır.',
   'admin.acad.notice.type.LESSON_STARTED': 'Ders başladı',

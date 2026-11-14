@@ -279,10 +279,10 @@ function FileButton({ notice, file, x }: { notice: CourseNotice; file: NoticeFil
       variant="secondary"
       loading={busy}
       leftIcon={<Icon name="download" size={16} />}
-      aria-label={x('admin.acad.notices.downloadFile', { name: file.name })}
       onClick={() => void download()}
     >
       {file.name} ({x(size.key, { n: size.n })})
+      <span className="sr-only"> {x('admin.acad.notices.downloadSuffix')}</span>
     </Button>
   );
 }

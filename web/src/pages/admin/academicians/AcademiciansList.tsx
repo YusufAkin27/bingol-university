@@ -36,6 +36,22 @@ export function statusTone(s: AdminAcademician['status']): Tone {
   return 'danger';
 }
 
+/** E-posta: sunucunun verdiği gibi; '@' ve '.' sonrasında satır kırılabilir, tam değer title'dadır. */
+export function EmailText({ email, fallback }: { email: string | null; fallback: string }) {
+  if (!email) return <span className={styles.email}>{fallback}</span>;
+  const parts = email.split(/(?<=[@.])/);
+  return (
+    <span className={`${styles.email} ltr`} title={email}>
+      {parts.map((p, i) => (
+        <span key={i}>
+          {p}
+          {i < parts.length - 1 && <wbr />}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export function ReviewerCell({ a }: { a: AdminAcademician }) {
   const x = ga(useI18n());
   if (a.reviewedBy != null) {
@@ -91,7 +107,6 @@ export default function AcademiciansList() {
             <Link
               className={styles.personName}
               to={paths.admin.academician(a.userId)}
-              aria-label={x('admin.acad.openDetailOf', { name })}
             >
               {a.title ? `${a.title} ` : ''}
               {name}
@@ -107,7 +122,7 @@ export default function AcademiciansList() {
       headerLabel: x('admin.acad.col.email'),
       card: { priority: 2 },
       // Sunucunun döndürdüğü gibi: maskeliyse maskeli kalır, istemci açmaz.
-      render: (a) => <span className={`${styles.email} ltr`}>{a.email ?? x('admin.acad.noEmail')}</span>,
+      render: (a) => <EmailText email={a.email} fallback={x('admin.acad.noEmail')} />,
     },
     {
       key: 'status',
@@ -170,7 +185,7 @@ export default function AcademiciansList() {
 
   return (
     <div>
-      <PageHeader title={x('admin.acad.title')} description={x('admin.acad.description')} />
+      <PageHeader title={<span className={styles.titleText}>{x('admin.acad.title')}</span>} description={x('admin.acad.description')} />
       <SearchAnchor id="acad-tabs" className={styles.tabsWrap}>
         <Tabs
           tabs={tabs}

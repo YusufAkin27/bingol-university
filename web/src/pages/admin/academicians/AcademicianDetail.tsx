@@ -15,7 +15,7 @@ import { SearchAnchor } from '../../../search/anchor';
 import { AcademicianActions } from './AcademicianActions';
 import { CoursePanel, limitText } from './CoursePanel';
 import { ga } from './dict';
-import { ReviewerCell, statusTone } from './AcademiciansList';
+import { EmailText, ReviewerCell, statusTone } from './AcademiciansList';
 import { nameOf } from './logic';
 import styles from './acad.module.css';
 
@@ -85,7 +85,7 @@ export default function AcademicianDetail() {
 
   return (
     <div>
-      <PageHeader title={<span dir="auto">{name}</span>} breadcrumbs={crumbs} />
+      <PageHeader title={<span dir="auto" className={styles.titleText}>{name}</span>} breadcrumbs={crumbs} />
       <div className={styles.grid}>
         <SearchAnchor id="acad-profile">
           <Card title={x('admin.acad.profile.title')}>
@@ -94,7 +94,7 @@ export default function AcademicianDetail() {
               {row(x('admin.acad.profile.titleField'), a.title || '-')}
               {row(x('admin.acad.profile.unit'), a.unit || x('admin.acad.noUnit'))}
               {/* Sunucunun döndürdüğü gibi (maskeli olabilir) */}
-              {row(x('admin.acad.profile.email'), <span className={`${styles.email} ltr`}>{a.email ?? x('admin.acad.noEmail')}</span>)}
+              {row(x('admin.acad.profile.email'), <EmailText email={a.email} fallback={x('admin.acad.noEmail')} />)}
               {row(
                 x('admin.acad.profile.account'),
                 <Link to={paths.admin.user(a.userId)}>{x('admin.acad.profile.openAccount', { id: a.userId })}</Link>,
@@ -154,7 +154,6 @@ export default function AcademicianDetail() {
                       type="button"
                       className={styles.courseBtn}
                       aria-pressed={c.id === selected?.id}
-                      aria-label={x('admin.acad.course.select', { name: c.name })}
                       onClick={() => {
                         const next = new URLSearchParams(params);
                         next.set('course', String(c.id));

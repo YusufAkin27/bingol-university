@@ -44,7 +44,14 @@
 .email {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
-  overflow-wrap: anywhere;
+  /* sözcük ortasında değil, '@' ve '.' sonrasında kırılır (<wbr>) */
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.titleText {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 .actions {
   display: flex;

@@ -105,11 +105,11 @@ describe('Akademisyen ayrıntısı', () => {
     setup();
     renderDetail();
     expect(await screen.findByRole('heading', { level: 1, name: 'Örnek Hoca' })).toBeInTheDocument();
-    expect(screen.getByText('o***@bingol.edu.tr')).toBeInTheDocument();
+    expect(screen.getByTitle('o***@bingol.edu.tr')).toBeInTheDocument();
     expect(screen.getByText('Deneme Bölümü', { selector: 'dd' })).toBeInTheDocument();
     expect(screen.getByText('Otomatik (kural)')).toBeInTheDocument();
     expect(screen.getByText('Sistem (kural)')).toBeInTheDocument();
-    expect(await screen.findByRole('button', { name: /Deneme Dersi dersini seç/ })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Deneme Dersi/ })).toBeInTheDocument();
     // yalnız karar düğmesi: ders/yoklama verisi için düzenleme yok
     expect(screen.getByRole('button', { name: 'Onayı geri al' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Kaydet|Sil|Düzenle/ })).not.toBeInTheDocument();
@@ -118,7 +118,7 @@ describe('Akademisyen ayrıntısı', () => {
   it('ders seçilince program, öğrenciler ve dört yoklama durumu (simge + metin) görünür', async () => {
     const urls = setup();
     renderDetail();
-    await userEvent.click(await screen.findByRole('button', { name: /Deneme Dersi dersini seç/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Deneme Dersi/ }));
     // Haftalık program
     expect(await screen.findByText('Salı')).toBeInTheDocument();
     expect(screen.getByText('09:00 - 10:50')).toBeInTheDocument();
@@ -153,12 +153,12 @@ describe('Akademisyen ayrıntısı', () => {
     const create = vi.fn(() => 'blob:fake');
     vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: create, revokeObjectURL: vi.fn() }));
     renderDetail();
-    await userEvent.click(await screen.findByRole('button', { name: /Deneme Dersi dersini seç/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /Deneme Dersi/ }));
     await userEvent.click(await screen.findByRole('tab', { name: 'Duyurular' }));
     expect(await screen.findByText('Ödev 1')).toBeInTheDocument();
     expect(screen.getByText('Ödev', { selector: 'span' })).toBeInTheDocument();
     expect(screen.getByText('Cuma gününe kadar teslim edin.')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'odev1.pdf dosyasını indir' }));
+    await userEvent.click(screen.getByRole('button', { name: /odev1.pdf/ }));
     await waitFor(() => expect(urls.some((u) => u.endsWith('/admin/academicians/notices/7/files/3'))).toBe(true));
     await waitFor(() => expect(create).toHaveBeenCalled());
   });
