@@ -5205,6 +5205,7 @@
   },
   "scanLessonExpired": "انتهت صلاحية الرمز. امسح الرمز الظاهر على الشاشة مرة أخرى.",
   "scanLessonNotEnrolled": "لست مدرجا في قائمة حضور هذه المادة.",
+  "scanLessonRevoked": "تمت إزالة حضورك في هذه المحاضرة من قبل المحاضر.",
   "signOutPendingTitle": "سيتم حذف الرسائل غير المرسلة",
   "signOutPendingBody": "سيتم حذف {count} رسائل غير مرسلة. هل تريد تسجيل الخروج؟",
   "@signOutPendingBody": {

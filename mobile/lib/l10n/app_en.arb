@@ -5205,6 +5205,7 @@
   },
   "scanLessonExpired": "The code has expired. Scan the code on the screen again.",
   "scanLessonNotEnrolled": "You are not on the attendance list for this course.",
+  "scanLessonRevoked": "Your attendance for this class was removed by the lecturer.",
   "signOutPendingTitle": "Unsent messages will be deleted",
   "signOutPendingBody": "{count} unsent messages will be deleted. Sign out anyway?",
   "@signOutPendingBody": {

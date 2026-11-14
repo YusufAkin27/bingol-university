@@ -227,6 +227,12 @@ class _QrScanHubPageState extends State<QrScanHubPage> with SingleTickerProvider
       } else if (e is ApiError && e.status == 403 && e.code == 'ATTENDANCE_NOT_ENROLLED') {
         _throttle.rejected(v, DateTime.now());
         _flash(l.scanLessonNotEnrolled);
+      } else if (e is ApiError && e.status == 403 && e.code == 'ATTENDANCE_REVOKED') {
+        // Öğretim elemanı kaydı kaldırdı: yeniden okutmak geri getirmez; kesin sonuç, tarayıcı kapanır.
+        _done = true;
+        _throttle.rejected(v, DateTime.now());
+        BuToast.show(context, l.scanLessonRevoked, kind: BuToastKind.warning);
+        Navigator.of(context).pop();
       } else {
         _throttle.rejected(v, DateTime.now());
         _flash(errorText(e));

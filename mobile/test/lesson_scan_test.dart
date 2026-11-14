@@ -94,6 +94,16 @@ void main() {
       await settle(tester, const Duration(seconds: 4));
     });
 
+    testWidgets('403 ATTENDANCE_REVOKED: kaldırıldı mesajı, tarayıcı kapanır', (tester) async {
+      await open(tester);
+      be.fail(_path, status: 403, code: 'ATTENDANCE_REVOKED');
+      await tester.tap(find.byKey(const ValueKey('scan-lesson')));
+      await settle(tester, const Duration(milliseconds: 800));
+      expect(find.byType(QrScanHubPage), findsNothing);
+      expect(find.textContaining('öğretim elemanı tarafından kaldırıldı'), findsOneWidget);
+      await settle(tester, const Duration(seconds: 3));
+    });
+
     testWidgets('429: genel "çok fazla deneme" mesajı, tarayıcı açık kalır', (tester) async {
       await open(tester);
       be.fail(_path, status: 429, code: 'RATE_LIMITED');

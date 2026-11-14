@@ -14282,6 +14282,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get scanLessonNotEnrolled => 'Bu dersin yoklama listesinde görünmüyorsun.';
 
   @override
+  String get scanLessonRevoked => 'Bu ders için yoklaman öğretim elemanı tarafından kaldırıldı.';
+
+  @override
   String get signOutPendingTitle => 'Gönderilmemiş mesajlar silinecek';
 
   @override

@@ -25674,6 +25674,12 @@ abstract class AppLocalizations {
   /// **'Bu dersin yoklama listesinde görünmüyorsun.'**
   String get scanLessonNotEnrolled;
 
+  /// No description provided for @scanLessonRevoked.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ders için yoklaman öğretim elemanı tarafından kaldırıldı.'**
+  String get scanLessonRevoked;
+
   /// No description provided for @signOutPendingTitle.
   ///
   /// In tr, this message translates to:

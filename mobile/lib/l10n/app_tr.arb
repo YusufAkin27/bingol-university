@@ -7756,6 +7756,7 @@
   },
   "scanLessonExpired": "Kodun süresi doldu. Ekrandaki kodu yeniden okut.",
   "scanLessonNotEnrolled": "Bu dersin yoklama listesinde görünmüyorsun.",
+  "scanLessonRevoked": "Bu ders için yoklaman öğretim elemanı tarafından kaldırıldı.",
   "signOutPendingTitle": "Gönderilmemiş mesajlar silinecek",
   "signOutPendingBody": "Gönderilmemiş {count} mesaj silinecek. Çıkış yapmak istiyor musun?",
   "@signOutPendingBody": {

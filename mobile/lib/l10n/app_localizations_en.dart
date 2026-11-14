@@ -14339,6 +14339,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanLessonNotEnrolled => 'You are not on the attendance list for this course.';
 
   @override
+  String get scanLessonRevoked => 'Your attendance for this class was removed by the lecturer.';
+
+  @override
   String get signOutPendingTitle => 'Unsent messages will be deleted';
 
   @override

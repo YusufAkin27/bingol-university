@@ -14228,6 +14228,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get scanLessonNotEnrolled => 'لست مدرجا في قائمة حضور هذه المادة.';
 
   @override
+  String get scanLessonRevoked => 'تمت إزالة حضورك في هذه المحاضرة من قبل المحاضر.';
+
+  @override
   String get signOutPendingTitle => 'سيتم حذف الرسائل غير المرسلة';
 
   @override
