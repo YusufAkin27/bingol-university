@@ -97,7 +97,7 @@ class AcademicianScanOrderProbeMvcTest extends AcademicianMvcBase {
         long sid = openSession(l, courseId);
         scan(s, code(l, sid));
         verify(limiter, atLeastOnce()).check(eq("attendance-scan:user:" + s.getId()), eq(10), eq(Duration.ofMinutes(1)));
-        verify(limiter, atLeastOnce()).check(startsWith("attendance-scan:ip:"), eq(60), eq(Duration.ofMinutes(1)));
+        verify(limiter, atLeastOnce()).check(startsWith("attendance-scan:ip:"), eq(3000), eq(Duration.ofMinutes(1)));
         call(l, postJson("/api/academician/courses/" + courseId + "/notices", obj().put("type", "LESSON_STARTED")), 201);
         verify(limiter, atLeastOnce()).check(eq("acad-notice:user:" + l.getId()), eq(60), eq(Duration.ofMinutes(1)));
         raw(l, MockMvcRequestBuilders.multipart("/api/academician/courses/" + courseId + "/notice-files")
