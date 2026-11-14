@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:bu_kampus/core/push/push_targets.dart';
 import 'package:bu_kampus/core/theme.dart';
-import 'package:bu_kampus/features/courses/course_widgets.dart';
 import 'package:bu_kampus/features/courses/my_course_detail_page.dart';
 import 'package:bu_kampus/features/courses/my_courses_api.dart';
 import 'package:bu_kampus/features/courses/my_courses_models.dart';
