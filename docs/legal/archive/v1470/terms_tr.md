@@ -1,0 +1,155 @@
+# Kullanım Koşulları
+
+Bu metin, BÜ Kampüs uygulaması ve web sitesinin ("**Hizmet**") nasıl kullanılacağını, sizin ve bizim hak ve sorumluluklarımızı açıklar. Lütfen dikkatle okuyun. Kayıt sırasında bu koşulları kabul etmeniz istenir; kabulünüz (belge sürümü ve tarihiyle) kaydedilir.
+
+## 1. Taraflar ve kapsam
+
+1. Hizmeti işleten: {{controller.name}}{{?controller.address}}, {{controller.address}}{{/controller.address}} ("**İşletici**", "**biz**").
+2. Hizmeti kullanan kişi ("**Kullanıcı**", "**siz**"), bu koşulları kabul etmiş sayılır.
+3. Hizmet; haber, duyuru ve etkinlik takibi, yemek listesi, profil, mesajlaşma, topluluklar ve etkinlikler (QR ile yoklama dahil), gönderiler (tek bir fotoğraf ve kısa bir metinden oluşur, beğenilebilir), kullanıcı takibi, anketler, kişisel ders programı ve sınav takibi, bildirimler, arama, favoriler ile destek ve geri bildirim özelliklerinden oluşur.
+4. **Yöneticiler.** Hizmetin yönetim paneline erişimi İşletici tarafından tanımlanan hesaplar ("**yönetici**") moderasyon, destek, içerik ve sistem işlerini yürütür. Yöneticiler üniversite adına değil, İşleticinin yetkilendirmesiyle çalışır; kullanıcı verileri üniversiteye aktarılmaz. Yönetici yetkileri 6. bölümde açıklanmıştır. Topluluk/kulüp yöneticileri ise 7. bölümdeki kullanıcı rolleridir ve yönetim paneli yöneticilerinden ayrıdır.
+5. Bu koşullar; [Gizlilik Politikası](/legal/privacy), [KVKK Aydınlatma Metni](/legal/kvkk), [Topluluk Kuralları](/legal/community-rules), [Açık Rıza Metni](/legal/explicit-consent), [Çerez ve Yerel Depolama Politikası](/legal/cookies), [İçerik Bildirimi ve Kaldırma](/legal/content-removal) ve [Saklama ve İmha](/legal/retention) metinleriyle birlikte okunur. Topluluk Kuralları bu koşulların ayrılmaz parçasıdır.
+
+> **Özetle:** Hizmeti kullanmak için bu koşulları, Gizlilik Politikasını, KVKK Aydınlatma Metnini ve Topluluk Kurallarını kabul edersiniz. Diğer metinler bilgilendirme veya isteğe bağlı izinler içindir.
+
+## 2. Hesap ve uygunluk
+
+1. **Kimler kayıt olabilir?** Hizmet, Bingöl Üniversitesi topluluğuna yönelik hazırlanmıştır; ancak kayıt için `bingol.edu.tr` uzantılı e-posta adresi zorunlu değildir. Gmail, Outlook, Hotmail, Yahoo gibi sağlayıcıların adresleri ile okul veya kurum e-postaları dahil, size ait geçerli herhangi bir e-posta adresiyle kayıt olabilirsiniz. Hesap, yalnızca e-posta adresinize gönderilen 6 haneli doğrulama kodunu girdiğinizde etkinleşir; kodu girmeden hesap açılmaz. Doğrulama kodu 10 dakika geçerlidir ve sınırlı sayıda deneme hakkı vardır. Kayıt için kullandığınız e-posta adresi üniversiteyle bağlantınızı doğrulamaz; bölüm, fakülte ve sınıf gibi bilgiler profilde sizin beyan ettiğiniz bilgilerdir.
+2. **Bilgilerin doğruluğu.** Hesap bilgilerinizin doğru olmasından ve şifrenizin güvenliğinden siz sorumlusunuz. Şifrenizi kimseyle paylaşmayın. Hesabınızın izinsiz kullanıldığını fark ederseniz derhal Destek bölümünden bize bildirin; "tüm oturumları kapat" seçeneğini kullanabilirsiniz.
+3. **Hesap devredilemez.** Hesabınızı başkasına devredemez, satamaz veya paylaşamazsınız. Bir kişi birden fazla hesabı kötüye kullanım amacıyla açamaz.
+4. **Yaş.** Hizmet üniversite topluluğuna yöneliktir; 18 yaşından küçük kullanıcılara özel olarak yönelik değildir. 18 yaşından küçük bir öğrenci kullanıyorsa, yasal temsilcisinin bilgisi ve izni dahilinde kullanması esastır; bu durumda ilgili kişisel verilerin işlenmesine ilişkin yasal temsilcinin onayı gerekebilir. Bu durumu fark ettiğimiz hesaplarda ek doğrulama isteyebiliriz.
+5. **Tek cihaz kuralı (mobil).** Güvenliğiniz için mobil uygulamada aynı anda tek oturum açık kalır: başka bir mobil cihazdan giriş yaptığınızda önceki mobil oturumlarınız sonlandırılır ve önceki cihaza "yeni cihazdan giriş" uyarısı e-postası gönderilebilir. Web üzerindeki oturumlar bu kuraldan etkilenmez.
+6. **Oturum süresi.** Erişim anahtarınız kısa ömürlüdür (15 dakika) ve otomatik yenilenir; yenileme anahtarı en çok 30 gün geçerlidir ve tek kullanımlıktır. Şifre sıfırlandığında tüm oturumlarınız kapatılır.
+
+> **Özetle:** Herhangi bir geçerli e-posta adresiyle (bingol.edu.tr zorunlu değildir) kayıt olur, adresinize gelen kodla doğrularsınız. Hesap size aittir ve devredilemez. Mobilde aynı anda tek cihazda oturum açık kalır.
+
+## 3. Kullanıcı içerikleri ve lisans
+
+1. **İçeriğin sahibi sizsiniz.** Mesaj, fotoğraf, video, topluluk gönderisi, etkinlik, profil bilgisi, geri bildirim gibi paylaştığınız içeriklerin ("**Kullanıcı İçeriği**") hakları size aittir. İçeriklerin hukuka uygunluğundan siz sorumlusunuz.
+2. **Bize verdiğiniz sınırlı lisans.** Hizmeti sunabilmemiz için, Kullanıcı İçeriğinizi yalnızca şu amaçlarla barındırma, saklama, şifreleme, yeniden boyutlandırma/yeniden kodlama, iletme, görüntüleme ve (içeriği gönderdiğiniz kişi ve topluluklara) sunma konusunda; münhasır olmayan, devredilemez, ücretsiz, dünya çapında ve Hizmet süresiyle sınırlı bir lisans vermiş olursunuz. İçeriğinizi reklam amacıyla kullanmayız, üçüncü kişilere satmayız.
+3. **Medyanın işlenmesi.** Yüklenen fotoğraflar (profil, kapak, gönderi, sohbet) türü ve boyutu doğrulandıktan sonra yeniden kodlanır; konum gibi gömülü üst veriler (EXIF) temizlenir. Sohbet fotoğrafları en çok 1600 piksel kenar uzunluğuna indirilir; mesaj başına en çok 10 ek (fotoğraf/video karışık) gönderilebilir. Bir gönderi tek bir fotoğraf ve en çok 7 kelimelik kısa bir metinden oluşur. **Sohbet videoları** cihazınızda sıkıştırılır; sunucu bunları yeniden kodlamaz ve **video dosyasının içindeki üst verileri (örneğin çekim zamanı veya konum etiketi) temizlemez**: sunucu yalnızca dosya türünü, boyutunu ve süresini doğrular ve videoyu şifreli saklar. Cihazınızın sıkıştırması bu üst verileri kaldırmayabilir; konum veya kişisel bilgi içerebilecek videoları göndermeden önce dikkatli olun. Videonun kapak (önizleme) görseli ise fotoğraf gibi yeniden kodlanır ve üst verisi temizlenir. Sohbet videoları en çok 60 saniye ve 40 MB'a kadar kabul edilir; günlük/saatlik yükleme sınırları vardır. Bu sınırlar değişebilir. Tek gönderimlik gösterim yalnızca fotoğraflar için kullanılabilir.
+4. **Yasaklı içerik kontrolü.** Yüklenen görsellerin dijital özeti (SHA-256), yetkili yöneticilerin yönettiği "yasaklı içerik" özet listesiyle karşılaştırılır. Eşleşme halinde yükleme reddedilir. Bu kontrol yalnızca özet karşılaştırmasıdır; görsellerin içeriği otomatik olarak analiz edilmez.
+5. **Gönderiler.** Gönderilerinizin içeriğinden ve üçüncü kişilere ait hak ve verilerin (örneğin başkasının fotoğrafının) ihlal edilmemesinden siz sorumlusunuz. Gönderiler uygulamaya giriş yapmış diğer kullanıcılara gösterilir ve beğenilebilir. İçerikler yayımlanmadan önce insan denetiminden geçmez; bu nedenle işletici yer sağlayıcı olarak hukuka aykırı içeriği bildirim üzerine kaldırır. Herhangi bir gönderi **Bildir** ile şikâyet edilebilir; yetkili yöneticiler inceler, içeriği gizleyebilir/kaldırabilir, uyarı veya hesap kısıtlaması uygulayabilir. Karara itiraz edebilirsiniz (bkz. 5. bölüm ve [İçerik Bildirimi ve Kaldırma](/legal/content-removal)).
+6. **Lisansın sona ermesi.** İçeriğinizi sildiğinizde veya hesabınızı kapattığınızda lisans, 6. bölüm ve Gizlilik Politikası'nda açıklanan istisnalar (örneğin başkalarının sohbet geçmişi, yasal saklama ve güvenlik kayıtları) saklı kalmak üzere sona erer.
+
+> **Özetle:** İçerik sizindir; biz yalnızca Hizmeti sunmak için sınırlı olarak saklar ve işleriz. Reklam için kullanmayız ve satmayız.
+
+## 4. Yasaklı davranışlar
+
+Aşağıdakileri yapmak yasaktır (ayrıntılı örnekler [Topluluk Kuralları](/legal/community-rules) metnindedir):
+
+1. Hukuka aykırı, tehdit, taciz, şantaj, nefret söylemi, ayrımcılık, müstehcen veya şiddet içeren içerik paylaşmak.
+2. Başkasının kimliğini taklit etmek; yanıltıcı hesap, topluluk veya etkinlik açmak.
+3. Başkalarının kişisel verilerini veya özel yazışmalarını rızası olmadan paylaşmak.
+4. Spam, zincir mesaj, izinsiz reklam veya dolandırıcılık girişimi.
+5. Hizmeti bozmak: otomatik araçlarla toplu istek, güvenlik açığı sömürme, yetkisiz erişim, hız sınırlarını aşma girişimi, yasaklı IP/cihaz engelini dolanmak (VPN, hesap değiştirme vb.).
+6. Kullanıcı rehberini toplu taramak veya kullanıcı bilgilerini sistematik olarak toplamak.
+7. Ders ve sınav dürüstlüğünü ihlal etmek (ör. sınav sorusu satışı, kopya organizasyonu).
+8. Etkinlik yoklama (QR) sistemini kötüye kullanmak: başkası adına yoklama vermek, kodu paylaşmak/çoğaltmak.
+9. Fikri mülkiyet haklarını ihlal etmek (bkz. 8. bölüm).
+10. Topluluk, etkinlik, profil, grup başlığı ve gönderi metni gibi herkese açık alanlarda küfür, hakaret, nefret söylemi veya cinsel içerikli ifadeler kullanmak. Bu tür içerik otomatik olarak reddedilebilir. Özel sohbetlerde ve grup mesajlarında içerik ön denetimden geçirilmez; ancak taciz, tehdit veya uygunsuz içerik kullanıcılar tarafından şikâyet edilebilir ve uygulama içi şikâyet/geri bildirim kanalıyla incelenerek içerik kaldırma, uyarı veya hesap kısıtlaması uygulanabilir.
+
+## 5. Moderasyon, askıya alma ve engelleme
+
+1. **Bildirme.** Her kullanıcı kullanıcıları, mesajları, gönderileri, toplulukları ve etkinlikleri "Bildir" ile raporlayabilir. Kötüye kullanımı önlemek için rapor sayısı sınırlıdır; art niyetli veya tekrarlı asılsız raporlar rapor kısıtlamasına yol açabilir.
+2. **İnceleme.** Raporlar yetkili yöneticiler tarafından incelenir. İnceleme sırasında raporla ilgili içerik ve ilişkili sohbet bağlamı görülebilir (bkz. 6. bölüm).
+3. **Yaptırım basamakları.** Duruma göre: (a) içeriğin kaldırılması veya gizlenmesi (aynı içerik birbirinden bağımsız birkaç hesap tarafından bildirilirse, inceleme tamamlanana kadar otomatik ve geçici olarak gizlenebilir; yönetici incelemesi sonucunda yeniden görünür kılınabilir); (b) uyarı/bildirim; (c) ihlal kaydı (aynı kullanıcı için 180 günlük pencerede çözülmüş 3 ihlal yöneticiye askıya alma önerisi doğurur; eşik ayarlanabilir); (d) geçici askıya alma; (e) kalıcı hesap kapatma; (f) gerekirse IP, ağ aralığı, cihaz veya kullanıcı bazlı erişim engeli. Ağır ihlallerde (ör. çocuk istismarı, terör, tehdit) basamaklar atlanabilir ve yetkili makamlara bildirim yapılabilir.
+4. **Erişim engeli (cihaz ve IP).** Güvenlik ve kötüye kullanımın önlenmesi amacıyla giriş/kayıt/istek sırasında IP adresiniz ve cihaz tanımlayıcınızın (geri döndürülemez özet olarak saklanan) kaydı tutulur; yasaklı bir kullanıcının hesabı, cihazı veya IP adresiyle eşleşen yeni hesap/oturum engellenebilir. Anonimleştirici ağlardan (ör. VPN, Tor, veri merkezi aralıkları) gelen istekler de güvenlik amacıyla engellenebilir. Ayrıntı Gizlilik Politikası'ndadır.
+5. **Bildirim ve itiraz.** Askıya alma veya içerik kaldırma kararlarında mümkün olduğunca size uygulama içi bildirim yapılır. Karara itiraz için uygulamadaki **itiraz** özelliğini veya Destek bölümünü kullanabilirsiniz; itirazlar bir yönetici tarafından yeniden değerlendirilir ve sonuç size bildirilir. Hesap güvenliğini doğrudan tehdit eden acil durumlarda önlem, itirazdan önce uygulanabilir.
+6. **Kullanıcı engellemesi.** Dilediğiniz kullanıcıyı engelleyebilirsiniz. Engelleme gizlilik içindir: engellediğiniz kişinin size gönderdiği mesajlar size iletilmez (geçmişte, bildirimde veya okunmamış sayacında görünmez); engellenen kişiye engellendiğini bildiren bir uyarı gösterilmez. Engel sonradan kaldırılsa bile engel sırasında gönderilmiş mesajlar size iletilmez. Bu mesajlar sistemde kalır; yetkili yöneticiler şikâyet incelemesi sırasında bu mesajları görebilir. Gruplarda engellediğiniz kişinin mesajları sizin için gizlenir, diğer üyeler normal görür.
+
+> **Özetle:** Kurallara aykırı içerik kaldırılabilir, hesap askıya alınabilir veya kapatılabilir; cihaz/IP engeli uygulanabilir. Karara uygulama içinden itiraz edebilirsiniz.
+
+## 6. Mesajlaşma ve yönetici erişimi
+
+Bu bölüm, mesajlarınızın sizinle karşı taraf arasında "tamamen gizli" olmadığını açıkça belirtir. Lütfen dikkatle okuyun.
+
+1. **Şifreleme türü.** Mesajlar iletim sırasında şifrelidir (TLS/WSS) ve sunucuda şifreli (AES-256-GCM) saklanır. Sistem **uçtan uca şifreli değildir**: şifre çözme anahtarları sunucu tarafında tutulur; yetkili yöneticiler gerektiğinde mesajları görüntüleyebilir. Mesajlarınızı kimsenin okuyamayacağı yönünde bir taahhüdümüz yoktur.
+2. **Yönetici rolleri ve yetkileri.** Yönetici hesaplarına İşleticinin tanımladığı beş rolden biri verilir: *tam yönetici* (tüm yönetim işlemleri), *moderatör* (moderasyon, rapor incelemesi, mesaj ve sohbet müdahalesi, kullanıcı bilgileri), *destek* (destek talepleri ve geri bildirimler; kullanıcı bilgileri maskeli), *editör* (haber, duyuru ve iletişim içeriklerinin yönetimi) ve *salt okunur* (yalnızca izleme; e-posta/IP gibi kişisel alanlar maskeli). **Özel yazışmaların içeriğine yalnızca tam yönetici ve moderatör rolündeki yöneticiler erişebilir;** diğer roller ve yönetici olmayan hiçbir kullanıcı erişemez. Rol değişiklikleri denetim kaydına yazılır.
+3. **Yönetici müdahaleleri.** Yetkili yöneticiler; kurallara aykırı veya şikâyet edilen bir mesajı gizleyebilir (geri alınabilir) ya da kalıcı silebilir, sohbeti kapatabilir veya yeniden açabilir, bir üyeyi sohbetten çıkarabilir, gönderi ve diğer içerikleri gizleyebilir veya kaldırabilir, kuralları ihlal eden bir topluluğu kapatabilir. Bu işlemlerde yönetici yazılı bir gerekçe girmek zorundadır; işlem, gerekçe, yönetici ve zaman denetim kaydına yazılır ve ilgili kullanıcıya uygulama içi bildirim yapılabilir.
+4. **Yönetici erişimi ne zaman?** Mesaj içeriğine yalnızca şikâyet ve rapor incelemesi, hesap güvenliği, kötüye kullanım ve yasa dışı faaliyet şüphesi, mahkeme/savcılık/kolluk gibi yetkili makam talepleri veya kullanıcının kendi başvurusu gibi gerekçelerle erişilir. Yönetim paneli teknik olarak bir kullanıcının üyesi olduğu veya olmuş olduğu sohbetleri (silinmiş, düzenlenmiş ve gizlenmiş mesajlar dahil) listeleyebildiğinden, bu yetki yalnızca sayılan gerekçelerle ve her seferinde yazılı gerekçeyle kullanılır. Meraktan veya amaç dışı görüntüleme yasaktır; yöneticilerin gizlilik yükümlülüğüne uyması esastır.
+5. **Denetim.** Yöneticinin mesaj içeriğini görüntülemesi için yazılı bir gerekçe girmesi zorunludur (en az 10 karakter; hukuki talep üzerine sohbet dışa aktarımında en az 20 karakter ve ayrıca ikinci bir onay adımı). Görüntüleme, içerik gösterilmeden önce otomatik olarak değiştirilemez bir erişim kaydına yazılır (yönetici, görüntülenen kullanıcı, sohbet, kaç mesaj, gerekçe, IP adresi, zaman). Kayıt yazılamazsa içerik gösterilmez. Erişim kayıtları hukuki ve güvenlik denetimi amacıyla 730 gün saklanır ve sonra silinir.
+6. **Silinen ve düzenlenen mesajlar.** "Herkes için sil" dediğinizde mesaj diğer kullanıcılara "Bu mesaj silindi" olarak görünür; ancak mesajın şifreli kopyası, düzenleme geçmişi ve ekleri güvenlik ve şikâyet incelemesi için sunucuda saklanmaya devam edebilir (varsayılan: süresiz; işletici bir saklama süresi belirlediğinde bu sürenin sonunda kalıcı silinir). Düzenlediğiniz mesajların önceki sürümleri de şifreli olarak saklanır. Kullanıcı arayüzünde silinmiş mesajı bir daha göremezsiniz; "verilerimi indir" çıktısına silinmiş mesajlar dahil edilmez.
+7. **Tek gönderimlik fotoğraf.** Bu özellikte alıcı fotoğrafı yalnızca bir kez açabilir; açtıktan sonra (veya gönderimden 24 saat sonra) alıcının erişimi kapanır ve gönderen kendi gönderdiğini yeniden açamaz. Ancak güvenlik ve şikâyet incelemesi için, yetkili yöneticilerin inceleyebilmesi amacıyla fotoğraf dosyası **şifreli olarak sunucuda 365 gün** (ayarlanabilir süre) saklanır ve sonra silinir. Cihazda ekran görüntüsü alınmasına teknik engeller konulsa da **ekran görüntüsü veya ekran kaydı alınmayacağı garanti edilmez**; alıcı başka bir cihazla fotoğraf çekebilir. Bu nedenle, başkasının eline geçmesini istemediğiniz görselleri göndermeyin.
+8. **Bildirim önizlemesi.** Varsayılan olarak anlık bildirimlerde mesaj metni yer almaz; "Yeni mesajınız var" türünde genel bir bildirim gönderilir.
+9. **Hesap silindiğinde sohbetler.** Hesabınızı sildiğinizde gönderdiğiniz mesajlar karşı tarafın sohbet geçmişinin parçası olduğundan silinmez; yazar adı anonim görünür. Hesabın yüklediği sohbet fotoğrafları silinir.
+
+> **Özetle:** Mesajlar şifreli saklanır ama uçtan uca şifreli değildir. Yetkili yöneticiler yalnızca gerekçeli durumlarda görüntüleyebilir ve her erişim kayda geçer. Silinen mesajların ve tek gönderimlik fotoğrafların şifreli kopyası güvenlik amacıyla bir süre saklanabilir. Ekran görüntüsüne karşı mutlak garanti verilmez.
+
+## 7. Topluluklar ve etkinlikler
+
+1. **Topluluk/kulüp yöneticileri**, kendi topluluklarındaki içerik ve üyelerden sorumludur; Topluluk Kurallarına ve bu koşullara uymak zorundadır. Yöneticilik yetkileri devredilebilir; yetki devrinde sistem onay adımları uygulayabilir. **Kulüp sahibi hesabını silerse** sahiplik, kulübün en eski aktif yönetici (yoksa moderatör) üyesine otomatik devredilir ve yeni sahibe bildirim gider; devralabilecek kimse yoksa kulüp kapatılır, üyelere bildirilir ve kulübe bağlı gelecek etkinlikler iptal edilir. Hizmet yöneticileri de kuralları ihlal eden bir kulübü gerekçeli olarak kapatabilir, yeniden açabilir veya sahipliğini devredebilir.
+2. **Etkinlik oluşturanlar** etkinlik bilgilerinin doğruluğundan ve etkinliğin hukuka uygunluğundan sorumludur. Etkinlik yoklaması QR kod veya elle yoklama ile yapılır; yoklama kayıtları etkinlik organizatörüne ve yetkili yöneticilere görünür. Etkinliği oluşturan hesabını silerse, kulübe bağlı olmayan ve bitmemiş etkinlikleri iptal edilir ve açık başvurular kapatılır.
+3. **Sohbet odaları.** Topluluk ve etkinlikler için oluşturulan sohbet odalarına katılımınız üyeliğinize bağlıdır; topluluktan çıkarıldığınız veya yasaklandığınızda odadan da düşürülürsünüz. Etkinlik sohbet odaları, etkinlik bittikten sonra varsayılan olarak 7 gün içinde kapanır.
+4. İşletici, üniversite birimleri veya topluluklar tarafından düzenlenen etkinliklerin sorumluluğunu, açıkça belirtilmedikçe üstlenmez; etkinliklerin fiziksel güvenliği, içeriği ve iptali organizatörün sorumluluğundadır.
+
+## 8. Fikri mülkiyet ve telif
+
+1. Uygulamanın yazılımı, tasarımı, logosu ve markası ile sunduğumuz özgün içerikler işleticiye veya lisans verenlerine aittir. Yazılımı kopyalayamaz, tersine mühendislik yapamaz veya izinsiz dağıtamazsınız.
+2. Başkasına ait telifli içerik paylaşmayın. Telif hakkınızın ihlal edildiğini düşünüyorsanız [İçerik Bildirimi ve Kaldırma](/legal/content-removal) metnindeki usulle başvurun; haklı bildirimlerde içerik kaldırılır, tekrar eden ihlallerde hesap kapatılabilir.
+3. "Bingöl Üniversitesi" adı ve logosu ilgili kuruma aittir; Hizmetteki kullanımı bu koşulların sağladığı kullanım hakkı dışında bir hak doğurmaz.
+
+## 9. Kaynak içerikler (haber, duyuru, etkinlik, yemek listesi)
+
+1. Haber, duyuru, etkinlik ve yemek listesi bilgileri Bingöl Üniversitesi'nin resmî internet sitelerinden (bingol.edu.tr ve sks.bingol.edu.tr) derlenerek sunulur. Bu içeriklerin hakları ilgili kuruma aittir.
+2. Derleme otomatik ve düzenli aralıklarla yapılır (haberler günlük, yemek listesi aylık); kaynak site değiştiğinde veya ulaşılamadığında bilgiler geçici olarak eksik/eski olabilir ve uygulama "bakımda" uyarısı gösterebilir. **Resmî bilgi için kaynak sayfa esastır;** Hizmet resmî bildirim yerine geçmez.
+3. Kaynak içerik uygunsuz veya hatalı ise kaynağın sahibine bildirim yapılması gerekebilir; uygulamadan gizleme talepleri için Destek bölümünü kullanın.
+
+## 10. Hizmet seviyesi, sorumluluk sınırı
+
+1. Hizmet "olduğu gibi" ve "mevcut haliyle" sunulur. Kesintisiz, hatasız veya her cihazda çalışacağı, belirli bir amaca uygun olacağı ya da içeriğinin (özellikle kaynak sitelerden derlenen bilgilerin) doğru, eksiksiz ve güncel olacağı yönünde açık veya zımni bir garanti verilmez; bakım, güncelleme, mücbir sebep ve üçüncü taraf hizmet (e-posta, bildirim altyapısı, barındırma) kesintileri olabilir. Zorunlu güncelleme veya bakım modu uygulanabilir. Bu fıkra, kanunen kaldırılamayan haklarınızı etkilemez.
+2. Hizmetin ücretsiz olması nedeniyle, kanunun izin verdiği ölçüde; dolaylı zararlar, kâr kaybı, veri kaybı, itibar kaybı ve üçüncü kişilerin içeriklerinden doğan zararlardan sorumlu değiliz; doğrudan zararlardan sorumluluğumuz da, kasıt ve ağır kusur hariç, kanunun izin verdiği ölçüde ve somut olayda ispatlanan zararla sınırlıdır. Kullanıcıların birbirleriyle ilişkilerinden, buluşmalarından, etkinliklerde yaşananlardan ve Hizmet dışındaki davranışlarından doğan uyuşmazlıklarda taraf değiliz. Bu sınırlama; kasıt, ağır kusur ve kanunen sınırlandırılamayan haller (emredici hukuk kuralları, kişilik hakları ve ölüm/yaralanma zararları dahil) için uygulanmaz.
+3. Kullanıcı içeriklerinin doğruluğunu garanti etmeyiz; üçüncü kişilerin paylaşımlarından onlar sorumludur. 5651 sayılı Kanun kapsamında yer sağlayıcı olarak, hukuka aykırı içerikten haberdar edildiğimizde usulüne uygun bildirim üzerine gerekli işlemleri yaparız.
+4. **Mesaj ve medya yedekleri.** Mesajlar ve medya şifreli saklandığından, ana şifreleme anahtarının kaybı halinde kurtarılamayabilir; sunucu yedekleri şifreli alınır ve sınırlı süre tutulur. Önemli belgelerinizin yedeğini kendiniz alın.
+
+## 11. Tazminat
+
+Bu koşulları, Topluluk Kurallarını veya hukuku ihlal etmeniz nedeniyle işleticiye yöneltilen üçüncü kişi taleplerinden doğan makul zararların (makul avukatlık giderleri dahil) giderilmesinden, kusurunuz ölçüsünde sorumlu olursunuz. Bu hüküm, kanunun öngördüğü yasal sorumluluk sınırlarını ortadan kaldırmaz.
+
+## 12. Değişiklikler ve yeniden onay
+
+1. Koşulları hukuki veya teknik gereklilikler nedeniyle güncelleyebiliriz. Güncel sürüm ve sürüm geçmişi bu sayfada yer alır.
+2. Önemli değişikliklerde uygulama sizden yeni sürümü **yeniden onaylamanızı** ister; yeniden onay verene kadar Hizmetin bazı bölümlerine (özellikle yazma işlemlerine) erişiminiz kısıtlanabilir. Kullanıcı aleyhine olmayan, yalnızca bilgilendirme niteliğindeki düzeltmelerde (örneğin kaldırılan bir özelliğin metinden çıkarılması, saklama sürelerinin kodla uyumlu hale getirilmesi, çevirilerin tamamlanması) yeniden onay istenmeyebilir; yeni sürüm yine bu sayfada yayımlanır.
+3. Onay sürümü ve zamanı, hukuki kanıt amacıyla hesap silindikten sonra da saklanır (bkz. Saklama ve İmha).
+
+## 13. Fesih ve hesap kapatma
+
+1. Hesabınızı dilediğiniz zaman uygulamadan veya [hesap silme sayfasından](/delete-account) kapatabilirsiniz. Hesap silme **anonimleştirmedir:** adınız, e-postanız ve profil bilgileriniz anonimleştirilir, bildirim cihaz kayıtlarınız, cihaz/IP ve analitik kayıtlarınız, gönderileriniz, beğenileriniz, takipleriniz, favori haberleriniz, ders programınız ve topluluk üyelikleriniz silinir. Gönderdiğiniz mesajlar ve topluluk gönderilerinin metni başkalarının sohbet/topluluk bağlamının parçası olduğundan yazarı anonim görünerek kalır; sözleşme onay kayıtları ve moderasyon izleri kimliksiz ve sınırlı biçimde korunur. Ayrıntı Gizlilik Politikası bölüm 7'de ve KVKK Aydınlatma Metni'nde açıklanmıştır.
+2. Koşulları ihlal ederseniz hesabınızı askıya alabilir veya kapatabiliriz (5. bölüm). Kapatılan hesabın yeniden açılması bize ait takdir yetkisindedir.
+3. Fesih, ihlal öncesi doğmuş hak ve yükümlülükleri ve doğası gereği devam etmesi gereken hükümleri (sorumluluk sınırı, fikri mülkiyet, uygulanacak hukuk vb.) etkilemez.
+
+## 14. Uygulanacak hukuk ve yetkili mahkeme
+
+1. Bu koşullara Türkiye Cumhuriyeti hukuku uygulanır.
+2. Hizmet ücretsiz sunulur; bu nedenle tüketici mevzuatındaki özel yetki ve başvuru kuralları (6502 sayılı Kanun) yalnızca kanunen uygulanabildiği ölçüde geçerlidir. Bu koşullardan doğan uyuşmazlıklarda **{{controller.jurisdiction|Bingöl}} mahkemeleri ve icra daireleri** yetkilidir; idari işlemlere ilişkin uyuşmazlıklarda ilgili idare mahkemesi görevlidir. Kanunun emredici yetki kuralları (tüketici sıfatınız varsa yerleşim yerinizdeki tüketici mahkemesi veya hakem heyeti dahil) ve yasal başvuru haklarınız saklıdır; bu madde onları sınırlamaz.
+
+## 15. Bingöl Üniversitesi ile ilişki; üçüncü taraf bağlantılar
+
+1. {{controller.relation|Hizmet, Bingöl Üniversitesi'nin resmî uygulaması değildir; üniversite adına açıklama yapmaz, bağlayıcı beyanda bulunmaz ve üniversitenin resmî bildiriminin yerini tutmaz. Üniversiteye ait haber, duyuru, etkinlik ve yemek listesi içeriği "kaynak: bingol.edu.tr" ibaresiyle ve kaynak sayfa bağlantısıyla sunulur. Üyelik, yalnızca üniversiteye ait e-posta adresiyle doğrulama için bu alan adını kullanır; bu durum üniversitenin Hizmeti onayladığı, işlettiği veya sorumluluk üstlendiği anlamına gelmez.}}
+2. Hizmet; kaynak site, harici bağlantı, QR veya üçüncü kişilerin paylaştığı bağlantılar aracılığıyla üçüncü taraf sitelere yönlendirebilir. Bu sitelerin içeriği, gizlilik uygulamaları ve güvenliği üzerinde denetimimiz yoktur; bunlardan sorumlu değiliz ve bağlantı onay anlamına gelmez. Bağlantıları kendi sorumluluğunuzda açarsınız.
+
+## 16. Hizmetin değiştirilmesi, kesintiler ve mücbir sebep
+
+1. Hizmeti veya özelliklerini, makul bir bildirimle (acil güvenlik/hukuki gereklilik hallerinde bildirimsiz) değiştirme, kısıtlama, askıya alma veya tamamen sonlandırma hakkımız saklıdır. Hizmetin sona ermesi halinde, mümkün olduğunca önceden duyuru yapar ve [Verilerimi indir](/legal/privacy) özelliğini bir süre açık tutmaya çalışırız. Ücretsiz Hizmetin değiştirilmesi veya sonlandırılması nedeniyle tazminat talep edilemez; kasıt ve ağır kusur halleri ile kanunun emredici hükümleri saklıdır.
+2. Bakım, güncelleme veya teknik arıza nedeniyle Hizmet geçici olarak kesilebilir; bu durumlarda uygulama "bakımda" uyarısı gösterebilir.
+3. Doğal afet, savaş, terör, salgın, elektrik/internet/altyapı ve üçüncü taraf sağlayıcı kesintileri, siber saldırı, mevzuat veya idari/yargısal karar değişikliği gibi tarafların makul kontrolü dışındaki olaylar (**mücbir sebep**) süresince yükümlülüklerin ifa edilememesinden dolayı sorumluluk doğmaz.
+
+## 17. Delil sözleşmesi ve tebligat
+
+1. Taraflar, Hizmet sunucularındaki kayıtların (sözleşme onay kayıtları, oturum/IP ve cihaz özeti kayıtları, moderasyon ve erişim günlükleri, e-posta ve bildirim kayıtları) 6100 sayılı Hukuk Muhakemeleri Kanunu m.193 anlamında **kesin delil** niteliğinde olduğunu kabul eder. Bu hüküm, emredici hukuka ve Kişisel Verileri Koruma Kurulu veya mahkemenin delil değerlendirme yetkisine halel getirmez; kayıtlara karşı gerçeğe aykırılığı ispat hakkınız saklıdır.
+2. Size yapılacak bildirim ve tebligatlar, kayıtlı e-posta adresinize ve uygulama içi bildirim kutusuna gönderilir; gönderim anında tebliğ edilmiş sayılır. E-posta adresinizi ve iletişim bilgilerinizi güncel tutmak sizin sorumluluğunuzdadır. Bize yapılacak bildirimler {{support.email|uygulama içi Destek bölümü}} üzerinden{{?controller.kep}} veya {{controller.kep}} KEP adresine{{/controller.kep}} iletilir.
+
+## 18. Genel hükümler
+
+1. **Bölünebilirlik.** Bu koşulların bir hükmü geçersiz veya uygulanamaz bulunursa, diğer hükümler geçerliliğini korur; geçersiz hüküm, amacına en yakın geçerli hükümle yorumlanır.
+2. **Feragat etmeme.** Bir hakkımızı kullanmamamız o haktan feragat anlamına gelmez.
+3. **Devir.** Hizmeti ve bu koşullardan doğan haklarımızı, Hizmetin devri, birleşme veya yeniden yapılanma halinde, kişisel verilerin korunmasına ilişkin mevzuata uygun şekilde bir halef kuruma devredebiliriz. Siz haklarınızı bize yazılı onay olmadan devredemezsiniz.
+4. **Bütünlük ve dil.** Bu koşullar ve atıf yapılan metinler tarafların anlaşmasının tamamıdır. Türkçe metin esastır; diğer dillerdeki metinler bilgilendirme amaçlı çeviridir ve farklılık halinde Türkçe metin geçerlidir.
+5. **Başlıklar.** Başlıklar ve "Özetle" kutuları yalnızca kolaylık içindir; yorumda bağlayıcı değildir.
+
+## 19. İletişim
+
+- Genel sorular, itiraz ve talepler: {{support.email|uygulama içi Destek bölümü}}
+{{?controller.email}}- Veri sorumlusu e-posta: {{controller.email}}{{/controller.email}}
+{{?controller.kep}}- KEP adresi: {{controller.kep}}{{/controller.kep}}
+{{?controller.address}}- Adres: {{controller.address}}{{/controller.address}}

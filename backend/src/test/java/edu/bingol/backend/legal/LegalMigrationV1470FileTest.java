@@ -147,7 +147,10 @@ class LegalMigrationV1470FileTest {
     // ---------------------------------------------------------------- yardimcilar
 
     private static String read(String prefix, String lang) throws Exception {
-        return Files.readString(DOCS.resolve(prefix + "_" + lang + ".md"), StandardCharsets.UTF_8)
+        // V1910'da metinler degisti: V1470 kaynaklari docs/legal/archive/v1470 altinda dondurulmustur
+        Path archived = DOCS.resolve("archive/v1470").resolve(prefix + "_" + lang + ".md");
+        Path file = Files.exists(archived) ? archived : DOCS.resolve(prefix + "_" + lang + ".md");
+        return Files.readString(file, StandardCharsets.UTF_8)
                 .replace("\r\n", "\n").replace("\r", "\n");
     }
 

@@ -25,7 +25,9 @@ const TYPES = [
 ];
 
 function load(prefix, lang) {
-  const file = path.join(SRC, `${prefix}_${lang}.md`);
+  // V1910'da metinler degisti: V1470 kaynaklari docs/legal/archive/v1470 altinda DONDURULDU.
+  const archived = path.join(SRC, 'archive', 'v1470', `${prefix}_${lang}.md`);
+  const file = fs.existsSync(archived) ? archived : path.join(SRC, `${prefix}_${lang}.md`);
   const raw = fs.readFileSync(file, 'utf8').replace(/^﻿/, '').replace(/\r\n?/g, '\n');
   const m = /^# (.+)\n/.exec(raw);
   if (!m) throw new Error(`${file}: ilk satir "# Baslik" olmali`);
