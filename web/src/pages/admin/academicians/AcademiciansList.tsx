@@ -4,6 +4,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useCan } from '../../../auth/permissions';
 import { acadKeys, listAcademicians, type AdminAcademician } from '../../../api/adminAcademicians';
 import {
   EmptyState,
@@ -24,7 +25,7 @@ import { paths } from '../../../paths';
 import { SearchAnchor, useSearchReveal } from '../../../search/anchor';
 import { AcademicianActions } from './AcademicianActions';
 import { ga } from './dict';
-import { ACAD_TABS, matchesFilter, nameOf, paramsForTab, type AcadTab } from './logic';
+import { ACAD_TABS, MASKED_Q_MIN, nameOf, paramsForTab, type AcadTab } from './logic';
 import styles from './acad.module.css';
 
 const PAGE_SIZE = 20;
@@ -56,6 +57,10 @@ export default function AcademiciansList() {
   const param = params.get('tab') as AcadTab | null;
   const tab: AcadTab = param && ACAD_TABS.includes(param) ? param : 'pending';
   const [filter, setFilter] = useState('');
+  const pii = useCan('users.pii');
+  // Maskeli profilde 3 karakterden kısa arama sunucuda 400 verir: gönderilmez, ipucu gösterilir
+  const tooShort = !pii && filter.length > 0 && filter.length < MASKED_Q_MIN;
+  const q = tooShort ? '' : filter;
   // Arama derin bağlantısı: otomatik onay açıklaması yalnız o sekmede vardır
   useSearchReveal((anchor) => {
     if (anchor === 'acad-auto') setParams({ tab: 'auto' }, { replace: true });
@@ -63,13 +68,12 @@ export default function AcademiciansList() {
   const sv = paramsForTab(tab);
 
   const query = useInfiniteQuery({
-    queryKey: [...acadKeys.list(tab, sv.approvalMode ?? ''), 'pages'],
-    queryFn: ({ pageParam }) => listAcademicians({ ...sv, cursor: pageParam, size: PAGE_SIZE }),
+    queryKey: [...acadKeys.list(tab, sv.approvalMode ?? ''), 'pages', q],
+    queryFn: ({ pageParam }) => listAcademicians({ ...sv, q, cursor: pageParam, size: PAGE_SIZE }),
     initialPageParam: null as number | null,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
-  const loaded = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
-  const rows = useMemo(() => loaded.filter((a) => matchesFilter(a, filter)), [loaded, filter]);
+  const rows = useMemo(() => query.data?.pages.flatMap((p) => p.items) ?? [], [query.data]);
 
   const tabs = ACAD_TABS.map((id) => ({ id, label: x(`admin.acad.tab.${id}`) }));
   const showDecision = tab !== 'pending';
@@ -174,6 +178,7 @@ export default function AcademiciansList() {
           label={x('admin.acad.tabs')}
           onChange={(id) => {
             const next = new URLSearchParams(params);
+            setFilter('');
             if (id === 'pending') next.delete('tab');
             else next.set('tab', id);
             setParams(next, { replace: true });
@@ -194,9 +199,10 @@ export default function AcademiciansList() {
             onSearch={setFilter}
             delay={150}
             label={x('admin.acad.filter.label')}
-            placeholder={x('admin.acad.filter.placeholder')}
+            placeholder={x(pii ? 'admin.acad.filter.placeholderPii' : 'admin.acad.filter.placeholder')}
           />
         </div>
+        {!pii && <p className={styles.hint}>{x('admin.acad.filter.minChars')}</p>}
       </SearchAnchor>
 
       <SearchAnchor id="acad-list">
@@ -209,8 +215,8 @@ export default function AcademiciansList() {
           error={query.isError}
           onRetry={() => void query.refetch()}
           empty={
-            loaded.length > 0 && rows.length === 0 ? (
-              <EmptyState icon="search" title={x('admin.acad.filter.noMatch')} description={x('admin.acad.filter.hint')} />
+            q ? (
+              <EmptyState icon="search" title={x('admin.acad.filter.noMatch')} description={x('admin.acad.filter.noMatchHint')} />
             ) : (
               <EmptyState icon="graduation" title={emptyTitle} description={emptyHint} />
             )

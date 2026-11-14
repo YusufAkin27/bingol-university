@@ -138,13 +138,39 @@ describe('Akademisyen başvuru listesi', () => {
     expect(screen.queryByRole('button', { name: 'Daha fazla yükle' })).not.toBeInTheDocument();
   });
 
-  it('yüklenen kayıtlar yerelde süzülür', async () => {
-    setup(() => ({ items: [person(1), person(2, { displayName: 'Başka Kişi', firstName: 'Başka', lastName: 'Kişi', email: 'baska@bingol.edu.tr' })] }));
+  it('arama q parametresiyle SUNUCUYA gider ve imeci sıfırlar', async () => {
+    const calls = setup((u) =>
+      u.searchParams.get('q') === 'baska'
+        ? { items: [person(2, { email: 'baska@bingol.edu.tr' })] }
+        : { items: [person(9)], nextCursor: 9 },
+    );
     renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
-    await screen.findByText('baska@bingol.edu.tr');
+    await screen.findByText('hoca9@bingol.edu.tr');
+    await userEvent.click(screen.getByRole('button', { name: 'Daha fazla yükle' }));
     await userEvent.type(screen.getByRole('searchbox'), 'baska');
-    await waitFor(() => expect(screen.queryByText('hoca1@bingol.edu.tr')).not.toBeInTheDocument());
-    expect(screen.getByText('baska@bingol.edu.tr')).toBeInTheDocument();
+    expect(await screen.findByText('baska@bingol.edu.tr')).toBeInTheDocument();
+    const withQ = listCalls(calls).filter((c) => c.url.includes('q=baska'));
+    expect(withQ.length).toBeGreaterThan(0);
+    expect(withQ.every((c) => !c.url.includes('cursor='))).toBe(true);
+  });
+
+  it('users.pii yoksa 3 karakterden kısa arama gönderilmez ve ipucu görünür', async () => {
+    const calls = setup(() => ({ items: [person(1)] }), WRITE);
+    renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
+    await screen.findByText('hoca1@bingol.edu.tr');
+    expect(screen.getByText(/en az 3 karakter/)).toBeInTheDocument();
+    await userEvent.type(screen.getByRole('searchbox'), 'ba');
+    await new Promise((r) => setTimeout(r, 500));
+    expect(listCalls(calls).some((c) => c.url.includes('q='))).toBe(false);
+  });
+
+  it('users.pii varsa ipucu yoktur ve kısa arama da gider', async () => {
+    const calls = setup(() => ({ items: [person(1)] }), [...WRITE, 'users.pii']);
+    renderWithProviders(<AcademiciansPage />, { route: '/admin/academicians' });
+    await screen.findByText('hoca1@bingol.edu.tr');
+    expect(screen.queryByText(/en az 3 karakter/)).not.toBeInTheDocument();
+    await userEvent.type(screen.getByRole('searchbox'), 'ba');
+    await waitFor(() => expect(listCalls(calls).some((c) => c.url.includes('q=ba'))).toBe(true));
   });
 
   it('boş durum ve hata durumu (tekrar dene)', async () => {

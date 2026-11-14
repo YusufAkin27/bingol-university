@@ -72,7 +72,7 @@ const notices = {
 
 const ME = { userId: 1, email: 'a@b.c', displayName: 'Y', profile: 'FULL', pinned: false, permissions: ['users.read', 'users.write', 'audit.read'] };
 
-function setup(opts: { detail?: Response } = {}) {
+function setup(opts: { detail?: Response; matrix?: unknown; course?: unknown } = {}) {
   const urls: string[] = [];
   mockFetch((raw) => {
     urls.push(raw);
@@ -81,8 +81,8 @@ function setup(opts: { detail?: Response } = {}) {
     if (path.endsWith('/admin/audit')) return jsonResponse(200, []);
     if (path.endsWith('/admin/academicians/5')) return opts.detail ?? jsonResponse(200, academician);
     if (path.endsWith('/admin/academicians/404')) return jsonResponse(404, { code: 'ACADEMICIAN_NOT_FOUND', message: 'x' });
-    if (path.endsWith('/admin/academicians/5/courses')) return jsonResponse(200, [course]);
-    if (path.endsWith('/admin/academicians/courses/11/attendance')) return jsonResponse(200, matrix);
+    if (path.endsWith('/admin/academicians/5/courses')) return jsonResponse(200, [opts.course ?? course]);
+    if (path.endsWith('/admin/academicians/courses/11/attendance')) return jsonResponse(200, opts.matrix ?? matrix);
     if (path.endsWith('/admin/academicians/courses/11/notices')) return jsonResponse(200, notices);
     if (path.endsWith('/admin/academicians/notices/7/files/3'))
       return new Response('PDFDATA', { status: 200, headers: { 'Content-Type': 'application/pdf' } });
@@ -91,12 +91,12 @@ function setup(opts: { detail?: Response } = {}) {
   return urls;
 }
 
-function renderDetail(id = '5') {
+function renderDetail(id = '5', query = '') {
   return renderWithProviders(
     <Routes>
       <Route path="/admin/academicians/:id" element={<AcademiciansPage />} />
     </Routes>,
-    { route: `/admin/academicians/${id}` },
+    { route: `/admin/academicians/${id}${query}` },
   );
 }
 
@@ -128,22 +128,22 @@ describe('Akademisyen ayrıntısı', () => {
     await userEvent.click(screen.getByRole('tab', { name: 'Öğrenciler' }));
     const studentsTable = await screen.findByRole('table', { name: 'Öğrenciler' });
     expect(within(studentsTable).getByText('Ali Deneme')).toBeInTheDocument();
-    expect(within(studentsTable).getByText('Sınıra yakın')).toBeInTheDocument();
-    expect(within(studentsTable).getByText('Sınır aşıldı')).toBeInTheDocument();
-    expect(within(studentsTable).getByText('Sınır içinde')).toBeInTheDocument();
+    expect(within(studentsTable).getByText('Sınıra bir kala')).toBeInTheDocument();
+    expect(within(studentsTable).getByText('Sınıra ulaştı')).toBeInTheDocument();
+    expect(within(studentsTable).getByText('Normal')).toBeInTheDocument();
 
     // Yoklama matrisi: dört durum metinle ayrışır
-    await userEvent.click(screen.getByRole('tab', { name: 'Yoklama' }));
+    await userEvent.click(screen.getByRole('tab', { name: 'Devamsızlık' }));
     const matrixTable = await screen.findByRole('table', { name: 'Yoklama matrisi' });
     expect(within(matrixTable).getByText('Var (QR)')).toBeInTheDocument();
     expect(within(matrixTable).getByText('Var (elle)')).toBeInTheDocument();
     expect(within(matrixTable).getByText('Silindi')).toBeInTheDocument();
     expect(within(matrixTable).getAllByText('Yok').length).toBe(3);
-    expect(within(matrixTable).getByText('Sınır aşıldı')).toBeInTheDocument();
+    expect(within(matrixTable).getByText('Sınıra ulaştı')).toBeInTheDocument();
 
     // Oturumlar: matristen türetilen özet
-    await userEvent.click(screen.getByRole('tab', { name: 'Oturumlar' }));
-    const sessions = await screen.findByRole('table', { name: 'Oturumlar' });
+    await userEvent.click(screen.getByRole('tab', { name: 'Yoklamalar' }));
+    const sessions = await screen.findByRole('table', { name: 'Yoklamalar' });
     expect(within(sessions).getAllByRole('row').length).toBe(3);
     expect(urls.some((u) => u.endsWith('/admin/academicians/courses/11/attendance'))).toBe(true);
   });
@@ -182,5 +182,43 @@ describe('Akademisyen ayrıntısı', () => {
     renderDetail();
     expect(await screen.findByText('Bu akademisyenin dersi yok')).toBeInTheDocument();
     expect(screen.getByText('Henüz karar verilmedi')).toBeInTheDocument();
+  });
+
+  it('altı yoklama durumu, canlı/sayılmayan oturum, bilinmeyen durum ve izin verilen devamsızlık satırı', async () => {
+    setup({
+      course: { ...course, plannedSessions: 14, limit: { type: 'COUNT', value: 3, allowedAbsences: 3 } },
+      matrix: {
+        sessions: [
+          { id: 101, lessonDate: '2026-11-03', live: false, counted: true },
+          { id: 102, lessonDate: '2026-11-10', live: true, counted: false },
+        ],
+        students: [
+          { studentId: 1, displayName: 'Ali Deneme', studentNo: null, marks: { '101': 'PRESENT_QR', '102': 'EXCUSED' }, absentCount: 0, atRisk: false, overLimit: false },
+          { studentId: 2, displayName: 'Ayşe Örnek', studentNo: '10****', marks: { '101': 'NOT_ENROLLED_YET', '102': 'ABSENT' }, absentCount: 0, atRisk: false, overLimit: false },
+          { studentId: 3, displayName: 'Can Sahte', studentNo: '100003', marks: { '101': 'FUTURE_MARK', '102': 'REVOKED' }, absentCount: 1, atRisk: false, overLimit: false },
+        ],
+        limit: { type: 'COUNT', value: 3, allowedAbsences: 3 },
+      },
+    });
+    renderDetail('5', '?course=11&ctab=attendance');
+    const table = await screen.findByRole('table', { name: 'Yoklama matrisi' });
+    expect(within(table).getByText('İzinli')).toBeInTheDocument();
+    expect(within(table).getByText('Kayıtlı değildi')).toBeInTheDocument();
+    expect(within(table).getByText('Henüz okutmadı')).toBeInTheDocument();
+    expect(within(table).getByText('FUTURE_MARK')).toBeInTheDocument();
+    expect(within(table).getByText('Silindi')).toBeInTheDocument();
+    expect(within(table).getByText(/sayılmıyor/)).toBeInTheDocument();
+    expect(within(table).getByText('10****')).toBeInTheDocument();
+    const legend = screen.getByRole('list', { name: 'Yoklama durumları' });
+    expect(within(legend).getAllByRole('listitem').length).toBe(6);
+    expect(screen.getAllByText('En fazla 3 devamsızlık').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Planlanan 14 oturum').length).toBeGreaterThan(0);
+  });
+
+  it("seçili ders sekmesi URL'dedir (yenilemede korunur)", async () => {
+    setup();
+    renderDetail('5', '?course=11&ctab=notices');
+    expect(await screen.findByText('Ödev 1')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Duyurular' })).toHaveAttribute('aria-selected', 'true');
   });
 });

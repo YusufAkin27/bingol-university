@@ -2,6 +2,7 @@
 // Yönetici uçlarında ayrı öğrenci/oturum listesi yoktur: ikisi de yoklama matrisinden türetilir (GET .../courses/{id}/attendance).
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   acadKeys,
   downloadNoticeFile,
@@ -43,20 +44,26 @@ const MARK_ICON: Record<AttendanceMark, IconName> = {
   PRESENT_MANUAL: 'pencil',
   REVOKED: 'ban',
   ABSENT: 'x',
+  NOT_ENROLLED_YET: 'clock',
+  EXCUSED: 'calendar',
 };
 
 /** Yoklama durumu: simge + metin + çizgi biçimi (renk tek başına anlam taşımaz). */
-export function MarkChip({ mark, x }: { mark: AttendanceMark; x: GA }) {
+export function MarkChip({ mark, x, provisional }: { mark: AttendanceMark | string; x: GA; provisional?: boolean }) {
+  const wait = provisional && mark === 'ABSENT';
+  const known = Object.prototype.hasOwnProperty.call(MARK_ICON, mark);
+  // Bilinmeyen (gelecekteki) durum: nötr hücre, ham metin
   return (
-    <span className={`${styles.mark} ${styles[`mark${mark}`] ?? ''}`}>
-      <Icon name={MARK_ICON[mark]} size={14} />
-      {x(`admin.acad.att.mark.${mark}`)}
+    <span className={`${styles.mark} ${known ? (styles[`mark${mark}`] ?? '') : styles.markUNKNOWN}`}>
+      <Icon name={wait ? 'clock' : known ? MARK_ICON[mark as AttendanceMark] : 'info'} size={14} />
+      {wait ? x('admin.acad.att.mark.PROVISIONAL') : known ? x(`admin.acad.att.mark.${mark}`) : mark}
     </span>
   );
 }
 
 export function limitText(course: Pick<AcademicianCourse, 'limit'>, x: GA): string {
   const l = course.limit;
+  if (l?.allowedAbsences != null) return x('admin.acad.course.limit.allowed', { n: l.allowedAbsences });
   if (!l || l.value == null) return x('admin.acad.course.limit.none');
   return x(`admin.acad.course.limit.${l.type}`, { n: l.value });
 }
@@ -107,8 +114,8 @@ function QueryGate({
 }
 
 function StatusOf({ m, s, x }: { m: AttendanceMatrix; s: AttendanceMatrix['students'][number]; x: GA }) {
-  const st = limitStatus(m.limit, s);
-  const tone = st === 'over' ? 'danger' : st === 'atRisk' ? 'warning' : st === 'ok' ? 'success' : 'neutral';
+  const st = limitStatus(m.limit, s, m.sessions.length);
+  const tone = st === 'over' ? 'danger' : st === 'atRisk' || st === 'reached' ? 'warning' : st === 'ok' ? 'success' : 'neutral';
   return <StatusPill tone={tone}>{x(`admin.acad.limitStatus.${st}`)}</StatusPill>;
 }
 
@@ -187,9 +194,15 @@ function AttendanceView({ courseId }: { courseId: number }) {
                 ...m.sessions.map(
                   (sess): Column<AttendanceMatrix['students'][number]> => ({
                     key: `s${sess.id}`,
-                    header: <span className={styles.dateHead}>{i18n.formatDate(sess.lessonDate)}</span>,
+                    header: (
+                      <span className={`${styles.dateHead} ${sess.counted === false ? styles.muted : ''}`}>
+                        {i18n.formatDate(sess.lessonDate)}
+                        {sess.counted === false ? ` (${x('admin.acad.att.uncounted')})` : ''}
+                        {sess.live ? ` (${x('admin.acad.att.liveTag')})` : ''}
+                      </span>
+                    ),
                     headerLabel: i18n.formatDate(sess.lessonDate),
-                    render: (s) => <MarkChip mark={s.marks[String(sess.id)] ?? 'ABSENT'} x={x} />,
+                    render: (s) => <MarkChip mark={s.marks[String(sess.id)] ?? 'ABSENT'} x={x} provisional={sess.live} />,
                   }),
                 ),
                 { key: 'absent', header: x('admin.acad.students.absent'), align: 'end', render: (s) => i18n.formatNumber(s.absentCount) },
@@ -219,10 +232,23 @@ function SessionsView({ courseId }: { courseId: number }) {
             rowKey={(s) => s.id}
             rows={m.sessions}
             columns={[
-              { key: 'date', header: x('admin.acad.sessions.date'), render: (s) => i18n.formatDate(s.lessonDate) },
+              {
+                key: 'date',
+                header: x('admin.acad.sessions.date'),
+                render: (s) => (
+                  <span className={s.counted === false ? styles.muted : undefined}>
+                    {i18n.formatDate(s.lessonDate)}
+                    {s.counted === false ? ` (${x('admin.acad.att.uncounted')})` : ''}
+                    {s.live ? ` (${x('admin.acad.att.liveTag')})` : ''}
+                  </span>
+                ),
+              },
               { key: 'present', header: x('admin.acad.sessions.present'), align: 'end', render: (s) => i18n.formatNumber(sessionSummary(s.id, m.students).present) },
               { key: 'revoked', header: x('admin.acad.sessions.revoked'), align: 'end', render: (s) => i18n.formatNumber(sessionSummary(s.id, m.students).revoked) },
               { key: 'absent', header: x('admin.acad.sessions.absent'), align: 'end', render: (s) => i18n.formatNumber(sessionSummary(s.id, m.students).absent) },
+              ...(m.sessions.some((s) => s.pendingCount != null)
+                ? [{ key: 'pending', header: x('admin.acad.sessions.pending'), align: 'end' as const, render: (s: AttendanceMatrix['sessions'][number]) => i18n.formatNumber(s.pendingCount ?? 0) }]
+                : []),
               { key: 'total', header: x('admin.acad.sessions.total'), align: 'end', render: (s) => i18n.formatNumber(sessionSummary(s.id, m.students).total) },
             ]}
           />
@@ -316,7 +342,16 @@ function NoticesView({ courseId }: { courseId: number }) {
 export function CoursePanel({ course }: { course: AcademicianCourse }) {
   const i18n = useI18n();
   const x = ga(i18n);
-  const [tab, setTab] = useState<CourseTab>('slots');
+  // Sekme URL'dedir (?ctab=): yenilemede korunur
+  const [params, setParams] = useSearchParams();
+  const raw = params.get('ctab') as CourseTab | null;
+  const tab: CourseTab = raw && COURSE_TABS.includes(raw) ? raw : 'slots';
+  const setTab = (id: CourseTab) => {
+    const next = new URLSearchParams(params);
+    if (id === 'slots') next.delete('ctab');
+    else next.set('ctab', id);
+    setParams(next, { replace: true });
+  };
   const tabs = COURSE_TABS.map((id) => ({ id, label: x(`admin.acad.course.tab.${id}`) }));
   return (
     <section aria-label={course.name}>
@@ -328,6 +363,9 @@ export function CoursePanel({ course }: { course: AcademicianCourse }) {
         <div className={styles.chips}>
           <Badge>{course.term}</Badge>
           <Badge>{limitText(course, x)}</Badge>
+          {course.plannedSessions != null && (
+            <Badge>{x('admin.acad.course.planned', { n: course.plannedSessions })}</Badge>
+          )}
         </div>
       </div>
       <Tabs tabs={tabs} value={tab} onChange={(id) => setTab(id as CourseTab)} label={x('admin.acad.course.tabs')} />
