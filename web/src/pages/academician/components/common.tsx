@@ -1,10 +1,11 @@
 // Panel genelinde ortak küçük bileşenler: bağlantı düğmesi, ders adı, yoklama başlatma penceresi, durum bloklar.
 import { useState, type ReactNode } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { acadKeys, openSession, type Course } from '../../../api/academician';
 import {
   Button,
+  ButtonLink,
   Checkbox,
   EmptyState,
   ErrorState,
@@ -14,10 +15,10 @@ import {
   Modal,
   Select,
   Skeleton,
+  useToast,
   type ButtonSize,
   type ButtonVariant,
 } from '../../../components/ui';
-import buttons from '../../../components/ui/Button.module.css';
 import { useI18n } from '../../../i18n/I18nProvider';
 import { useT } from '../dict';
 import { acadError } from '../errors';
@@ -25,7 +26,7 @@ import { todayLocal } from '../format';
 import { acadPaths } from '../paths';
 import styles from '../academician.module.css';
 
-/** Router bağlantısı, düğme görünümlü. Kit'in `ButtonLink`i site dil önekini ekler; panel yolları için bu kullanılır. */
+/** Router bağlantısı, düğme görünümlü (kit `ButtonLink`; `/akademisyen` yolları dil öneki almaz). */
 export function LinkButton({
   to,
   variant = 'primary',
@@ -42,10 +43,9 @@ export function LinkButton({
   className?: string;
 }) {
   return (
-    <Link to={to} className={[buttons.btn, buttons[variant], buttons[size], className ?? ''].filter(Boolean).join(' ')}>
-      {leftIcon}
+    <ButtonLink to={to} variant={variant} size={size} leftIcon={leftIcon} className={className}>
       {children}
-    </Link>
+    </ButtonLink>
   );
 }
 
@@ -102,6 +102,7 @@ export function StartSessionDialog({
   const t = useT();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const toast = useToast();
   const [notify, setNotify] = useState(false);
   const [date, setDate] = useState(todayLocal());
   const [slot, setSlot] = useState(slotId ? String(slotId) : '');
@@ -111,6 +112,9 @@ export function StartSessionDialog({
     mutationFn: () => openSession(course.id, { lessonDate: date || undefined, slotId: slot ? Number(slot) : undefined, notify }),
     onSuccess: (s) => {
       void qc.invalidateQueries({ queryKey: acadKeys.sessions(course.id) });
+      // sunucu aynı ders için var olan oturumu açtıysa ve/veya bildirim tekrar gitmediyse söylenir
+      if (s.reused) toast.info(t('ac.start.reused'));
+      if (notify && s.notified === false) toast.info(t('ac.start.notNotified'));
       onClose();
       navigate(acadPaths.live(s.id));
     },

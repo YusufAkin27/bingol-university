@@ -1,6 +1,6 @@
 // SAYFA: Ders ayrıntısı (/akademisyen/dersler/:id?sekme=...). Sekmeler: Program, Öğrenciler, Yoklamalar, Devamsızlık,
 // Duyurular, Dışa aktar. API: GET/PATCH/DELETE /academician/courses/{id}; sekmeler kendi uçlarını kullanır.
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { acadKeys, deleteCourse, getCourse, patchCourse } from '../../../api/academician';
@@ -135,12 +135,14 @@ export default function CourseDetailPage() {
         }}
         tabs={COURSE_TABS.map((k) => ({ id: k, label: t(TAB_KEY[k]) }))}
       >
-        {tab === 'program' && <ProgramTab course={c} />}
-        {tab === 'ogrenciler' && <StudentsTab course={c} />}
-        {tab === 'yoklamalar' && <SessionsTab course={c} onStart={() => setStarting(true)} />}
-        {tab === 'devamsizlik' && <AbsenceTab course={c} />}
-        {tab === 'duyurular' && <NoticesTab course={c} />}
-        {tab === 'disa-aktar' && <ExportTab course={c} />}
+        {/* Sekmeler bir kez açılınca BAĞLI kalır, yalnız gizlenir: sekme değiştirmek taslağı, süren yüklemeyi ve kaydedilmemiş
+            düzenlemeleri kaybettirmez. */}
+        <KeepTab id="program" tab={tab}><ProgramTab course={c} /></KeepTab>
+        <KeepTab id="ogrenciler" tab={tab}><StudentsTab course={c} /></KeepTab>
+        <KeepTab id="yoklamalar" tab={tab}><SessionsTab course={c} onStart={() => setStarting(true)} /></KeepTab>
+        <KeepTab id="devamsizlik" tab={tab}><AbsenceTab course={c} /></KeepTab>
+        <KeepTab id="duyurular" tab={tab}><NoticesTab course={c} /></KeepTab>
+        <KeepTab id="disa-aktar" tab={tab}><ExportTab course={c} /></KeepTab>
       </Tabs>
 
       {editing && <CourseFormDialog open course={c} onClose={() => setEditing(false)} />}
@@ -170,4 +172,12 @@ export default function CourseDetailPage() {
       />
     </div>
   );
+}
+
+/** Sekme içeriği: ilk açılışta bağlanır, sonra gizlenip gösterilir (durum korunur). */
+function KeepTab({ id, tab, children }: { id: TabId; tab: TabId; children: ReactNode }) {
+  const [seen, setSeen] = useState(id === tab);
+  if (tab === id && !seen) setSeen(true);
+  if (!seen && tab !== id) return null;
+  return <div hidden={tab !== id}>{children}</div>;
 }

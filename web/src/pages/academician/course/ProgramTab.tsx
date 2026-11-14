@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { acadKeys, replaceSlots, type Course } from '../../../api/academician';
 import { Button, Card, FormField, Icon, Input, Select, useToast } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
+import { useUnsavedGuard } from '../components/unsavedGuard';
 import { useT } from '../dict';
 import { acadError } from '../errors';
 import styles from '../academician.module.css';
@@ -27,6 +28,8 @@ export function ProgramTab({ course }: { course: Course }) {
   const clash = useMemo(() => overlaps(rows), [rows]);
   const clashKeys = new Set(clash.flat());
   const dirty = JSON.stringify(rows.map(({ key: _k, ...r }) => r)) !== JSON.stringify(fromCourse(course).map(({ key: _k, ...r }) => r));
+
+  useUnsavedGuard(dirty, t('ac.program.leaveGuard'));
 
   const save = useMutation({
     mutationFn: () =>

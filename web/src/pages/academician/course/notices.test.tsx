@@ -257,3 +257,133 @@ describe('liste: indirme ve silme', () => {
     expect(await screen.findByText('Henüz duyuru yok')).toBeInTheDocument();
   });
 });
+
+describe('W5-W7: iş kaybı koruması', () => {
+  async function pickFiles(files: File[]) {
+    const input = (await screen.findAllByLabelText('Dosya seç')).find((e) => e.tagName === 'INPUT')!;
+    fireEvent.change(input, { target: { files } });
+  }
+
+  it('W5: sekme değiştirince duyuru taslağı ve yüklenen dosyalar kaybolmaz, süren yükleme iptal edilmez', async () => {
+    let hold: FakeXhr | null = null;
+    behaviors = [(x) => (hold = x)];
+    const api = open();
+    const user = userEvent.setup();
+    await user.selectOptions(await typeSelect(), 'MATERIAL');
+    await user.type(screen.getByLabelText(/^Başlık/), 'Taslak başlık');
+    await pickFiles([pdf('slayt.pdf')]);
+    await waitFor(() => expect(hold).not.toBeNull());
+    // başka sekmeye geç ve geri dön
+    await user.click(screen.getByRole('tab', { name: 'Program' }));
+    await user.click(screen.getByRole('tab', { name: 'Duyurular' }));
+    expect(screen.getByLabelText(/^Başlık/)).toHaveValue('Taslak başlık');
+    expect(screen.getByText('slayt.pdf')).toBeInTheDocument();
+    hold!.finish(201, { id: 777, name: 'slayt.pdf', contentType: 'application/pdf', sizeBytes: 5 }); // iptal edilmedi: hâlâ tamamlanabilir
+    expect(await screen.findByText('Yüklendi')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Duyuruyu gönder' }));
+    await waitFor(() => expect(api.callsTo('POST', '/academician/courses/7/notices')).toHaveLength(1));
+  });
+
+  it('W5: kaydedilmemiş taslak varken başka sayfaya giden bağlantı onay ister; vazgeçilirse sayfa değişmez', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    open();
+    const user = userEvent.setup();
+    await user.selectOptions(await typeSelect(), 'MATERIAL');
+    await user.type(screen.getByLabelText(/^Başlık/), 'Taslak');
+    await user.click(screen.getAllByRole('link', { name: /Derslerim/ })[0]);
+    expect(confirm).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText(/^Başlık/)).toHaveValue('Taslak'); // hâlâ aynı sayfada
+    confirm.mockReturnValue(true);
+    await user.click(screen.getAllByRole('link', { name: /Derslerim/ })[0]);
+    await waitFor(() => expect(screen.queryByLabelText('Duyuru türü')).toBeNull());
+  });
+
+  it('W5: temiz formda bağlantı onay istemez', async () => {
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    open((a) => a.get('/academician/courses', [course()]));
+    await userEvent.setup().click((await screen.findAllByRole('link', { name: /Derslerim/ }))[0]);
+    expect(confirm).not.toHaveBeenCalled();
+  });
+
+  it('W6: tür dosyasız türe değişirken kaybolacak veri varsa önce onay istenir; vazgeçilirse korunur, onaylanırsa dosya sunucudan silinir', async () => {
+    const api = open((a) => a.del('/academician/notice-files/:id', undefined));
+    const user = userEvent.setup();
+    await user.selectOptions(await typeSelect(), 'MATERIAL');
+    await user.type(screen.getByLabelText(/^Başlık/), 'Slaytlar');
+    await pickFiles([pdf('a.pdf')]);
+    await screen.findByText('Yüklendi');
+    await user.selectOptions(screen.getByLabelText('Duyuru türü'), 'LESSON_STARTED');
+    const dlg = await screen.findByRole('dialog');
+    expect(dlg).toHaveTextContent('yüklenen dosyalar silinir');
+    await user.click(within(dlg).getByRole('button', { name: 'Vazgeç' }));
+    expect(screen.getByLabelText('Duyuru türü')).toHaveValue('MATERIAL');
+    expect(screen.getByLabelText(/^Başlık/)).toHaveValue('Slaytlar');
+    expect(api.callsTo('DELETE', '/academician/notice-files/901')).toHaveLength(0);
+    await user.selectOptions(screen.getByLabelText('Duyuru türü'), 'LESSON_STARTED');
+    await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Türü değiştir' }));
+    await waitFor(() => expect(api.callsTo('DELETE', '/academician/notice-files/901')).toHaveLength(1));
+    expect(screen.getByLabelText('Duyuru türü')).toHaveValue('LESSON_STARTED');
+  });
+
+  it('W6: boş forma tür değişimi onay istemez', async () => {
+    open();
+    const user = userEvent.setup();
+    await user.selectOptions(await typeSelect(), 'EXAM');
+    await user.selectOptions(screen.getByLabelText('Duyuru türü'), 'LESSON_STARTED');
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+
+  it('W7: ön kontrolden dönen dosya gönderimi ENGELLEMEZ ve gönderilmeyeceği söylenir; geçerli dosya gönderilir', async () => {
+    const api = open();
+    const user = userEvent.setup();
+    await user.selectOptions(await typeSelect(), 'MATERIAL');
+    await user.type(screen.getByLabelText(/^Başlık/), 'Karışık');
+    await pickFiles([pdf('iyi.pdf'), pdf('kotu.exe')]);
+    await screen.findByText('Yüklendi');
+    expect(screen.getByText(/Bu dosya gönderilmeyecek/)).toBeInTheDocument();
+    expect(screen.getByText(/1 dosya ön kontrolden geçemedi/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Duyuruyu gönder' }));
+    await waitFor(() => expect(api.callsTo('POST', '/academician/courses/7/notices')).toHaveLength(1));
+    expect((api.callsTo('POST', '/academician/courses/7/notices')[0].body as { fileIds: number[] }).fileIds).toHaveLength(1);
+  });
+
+  it('W7: "Reddedilenleri listeden kaldır" yalnız reddedilenleri temizler', async () => {
+    open();
+    const user = userEvent.setup();
+    await user.selectOptions(await typeSelect(), 'MATERIAL');
+    await pickFiles([pdf('iyi.pdf'), pdf('kotu.exe')]);
+    await screen.findByText('Yüklendi');
+    await user.click(screen.getByRole('button', { name: 'Reddedilenleri listeden kaldır' }));
+    expect(screen.queryByText('kotu.exe')).toBeNull();
+    expect(screen.getByText('iyi.pdf')).toBeInTheDocument();
+  });
+
+  it('sunucunun bildirdiği dosya sınırları ön kontrolde kullanılır (me.limits)', async () => {
+    setAcadTokens();
+    const api = mockApi()
+      .get('/academician/me', { ...APPROVED_ME, limits: { noticeFileMaxBytes: 1024, noticeFilesPerNotice: 2 } })
+      .get('/academician/courses/7', course())
+      .get('/academician/courses/7/notices', { items: [], nextCursor: null });
+    api.install();
+    renderAcademician('/akademisyen/dersler/7?sekme=duyurular');
+    await userEvent.setup().selectOptions(await typeSelect(), 'MATERIAL');
+    expect(screen.getByText(/En çok 2 dosya, her biri en çok 0 MB|En çok 2 dosya/)).toBeInTheDocument();
+    await pickFiles([pdf('buyuk.pdf', 5000)]);
+    expect(await screen.findByText(/sınırını aşıyor/)).toBeInTheDocument();
+    expect(uploads).toHaveLength(0);
+  });
+
+  it('çift gönderim: gönderme sürerken ikinci tıklama ikinci istek üretmez', async () => {
+    let release!: () => void;
+    const api = open((a) =>
+      a.post('/academician/courses/7/notices', () => new Promise<Response>((r) => (release = () => r(new Response(JSON.stringify({ id: 1 }), { status: 201, headers: { 'Content-Type': 'application/json' } }))))),
+    );
+    const user = userEvent.setup();
+    await user.selectOptions(await typeSelect(), 'LESSON_STARTED');
+    const btn = screen.getByRole('button', { name: 'Duyuruyu gönder' });
+    await user.click(btn);
+    await user.click(btn);
+    await waitFor(() => expect(api.callsTo('POST', '/academician/courses/7/notices').length).toBe(1));
+    release();
+  });
+});

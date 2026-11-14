@@ -28,9 +28,13 @@ interface Props {
   large?: boolean;
   onReopen?: () => void;
   reopening?: boolean;
+  /** Kalıcı yoklama hatasının Türkçe metni (bekleme durumunda gösterilir). */
+  errorText?: string | null;
+  /** 'unexpected': oturum bu ekran açıkken kullanıcı kapatmadan kapandı. */
+  closedReason?: 'unexpected' | null;
 }
 
-export function QrPanel({ status, codes, offsetMs, lastFreshAt, large, onReopen, reopening }: Props) {
+export function QrPanel({ status, codes, offsetMs, lastFreshAt, large, onReopen, reopening, errorText, closedReason }: Props) {
   const t = useT();
   const now = useNow();
   const q = qrState({ status, nowLocalMs: now, lastFreshLocalMs: lastFreshAt, offsetMs, codes });
@@ -56,7 +60,7 @@ export function QrPanel({ status, codes, offsetMs, lastFreshAt, large, onReopen,
               <>
                 <Icon name="lock" size={large ? 56 : 36} aria-hidden="true" />
                 <strong>{t('ac.live.closedTitle')}</strong>
-                <span>{t('ac.live.closedText')}</span>
+                <span>{closedReason === 'unexpected' ? t('ac.live.closedUnexpected') : t('ac.live.closedText')}</span>
                 {onReopen && (
                   <Button loading={reopening} onClick={onReopen} leftIcon={<Icon name="play" size={16} />}>
                     {t('ac.session.reopen')}
@@ -68,6 +72,7 @@ export function QrPanel({ status, codes, offsetMs, lastFreshAt, large, onReopen,
                 <Spinner size={large ? 'lg' : 'md'} />
                 <strong>{t('ac.live.waitingTitle')}</strong>
                 <span>{t('ac.live.waitingText')}</span>
+                {errorText && <span role="alert">{errorText}</span>}
               </>
             ) : (
               <>

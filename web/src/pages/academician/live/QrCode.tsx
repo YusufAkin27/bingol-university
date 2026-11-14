@@ -50,7 +50,7 @@ export const QrCode = memo(function QrCode({ value, label }: { value: string; la
   const size = modules + QUIET * 2;
   return (
     <div className={styles.qrPlate}>
-      <svg className={styles.qrSvg} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={label} shapeRendering="crispEdges" data-qr={value}>
+      <svg className={styles.qrSvg} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={label} shapeRendering="crispEdges" {...(import.meta.env.DEV ? { 'data-qr': value } : {})}>
         <path d={d} fill="currentColor" />
       </svg>
     </div>

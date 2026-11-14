@@ -28,7 +28,8 @@ export default function DashboardPage() {
   const courses = useQuery({ queryKey: acadKeys.courses(), queryFn: listCourses });
   const [start, setStart] = useState<Lesson | null>(null);
 
-  const active = useMemo(() => (courses.data ?? []).filter((c) => c.status === 'ACTIVE').slice(0, MAX_FANOUT), [courses.data]);
+  const allActive = useMemo(() => (courses.data ?? []).filter((c) => c.status === 'ACTIVE'), [courses.data]);
+  const active = useMemo(() => allActive.slice(0, MAX_FANOUT), [allActive]);
   const sessions = useQueries({ queries: active.map((c) => ({ queryKey: acadKeys.sessions(c.id), queryFn: () => listSessions(c.id), refetchInterval: 60_000 })) });
   const matrices = useQueries({ queries: active.map((c) => ({ queryKey: acadKeys.attendance(c.id), queryFn: () => getAttendance(c.id) })) });
   const notices = useQueries({ queries: active.map((c) => ({ queryKey: [...acadKeys.notices(c.id), 'recent'], queryFn: () => listNotices(c.id, null, 3) })) });
@@ -87,6 +88,14 @@ export default function DashboardPage() {
         />
       ) : (
         <>
+          {allActive.length > MAX_FANOUT && (
+            <div className={styles.warnBox} role="note">
+              <Icon name="info" size={18} />
+              <span>
+                {t('ac.dash.truncated', { n: MAX_FANOUT, total: allActive.length })} <Link to={acadPaths.courses}>{t('ac.dash.truncatedLink')}</Link>
+              </span>
+            </div>
+          )}
           <div className={styles.tiles}>
             <StatTile label={t('ac.dash.tile.today')} value={lessons.length} icon="calendar" />
             <StatTile label={t('ac.dash.tile.open')} value={openSessions.length} icon="activity" />
@@ -141,7 +150,7 @@ export default function DashboardPage() {
                         <span className={styles.rowTitle}>{courseTitle(course)}</span>
                         <span className={styles.muted}>
                           {t('ac.dash.presentOf', { present: session.presentCount, total: session.enrolledCount })}
-                          {session.pendingScans && session.pendingScans.length > 0 ? ` · ${t('ac.dash.pendingN', { n: session.pendingScans.length })}` : ''}
+                          {(session.pendingCount ?? 0) > 0 ? ` · ${t('ac.dash.pendingN', { n: session.pendingCount ?? 0 })}` : ''}
                         </span>
                       </div>
                       <LinkButton to={acadPaths.live(session.id)} size="sm" leftIcon={<Icon name="activity" size={16} />}>

@@ -24,6 +24,7 @@ import { useT } from '../dict';
 import { acadError } from '../errors';
 import { fmtDateTime, fmtSize, localInputToIso } from '../format';
 import styles from '../academician.module.css';
+import { useUnsavedGuard } from '../components/unsavedGuard';
 import { NOTICE_SPECS, validateNotice } from './noticeRules';
 import { NoticeFilesField, useNoticeFiles } from './NoticeFiles';
 
@@ -41,6 +42,10 @@ export function NoticesTab({ course }: { course: Course }) {
   const [deleting, setDeleting] = useState<Notice | null>(null);
   const fileState = useNoticeFiles(course.id);
   const spec = NOTICE_SPECS[type];
+  const [switchTo, setSwitchTo] = useState<NoticeType | null>(null);
+  // taslak ya da süren/biten yükleme varken sayfadan ayrılma onay ister
+  const dirty = !!(title.trim() || note.trim() || eventAt || fileState.files.some((f) => !f.rejected));
+  useUnsavedGuard(dirty || fileState.uploading, t('ac.notices.leaveGuard'));
 
   const list = useInfiniteQuery({
     queryKey: acadKeys.notices(course.id),
@@ -86,6 +91,17 @@ export function NoticesTab({ course }: { course: Course }) {
     },
   });
 
+  /** Tür değişince kaybolacak bir şey (yüklenmiş dosya, doldurulmuş alan) varsa önce onay ister. */
+  function requestType(next: NoticeType) {
+    const n = NOTICE_SPECS[next];
+    const lost =
+      (!n.files && fileState.files.some((f) => !f.rejected)) ||
+      (!n.title && !!title.trim()) ||
+      (!n.note && !!note.trim()) ||
+      (n.event === 'none' && !!eventAt);
+    if (lost) setSwitchTo(next);
+    else changeType(next);
+  }
   function changeType(next: NoticeType) {
     setType(next);
     setTouched(false);
@@ -100,6 +116,7 @@ export function NoticesTab({ course }: { course: Course }) {
   const req = t('ac.field.required');
 
   function submit() {
+    if (send.isPending) return;
     setTouched(true);
     setError(null);
     if (bad.size > 0) return;
@@ -107,7 +124,7 @@ export function NoticesTab({ course }: { course: Course }) {
       setError(t('ac.notices.waitUploads'));
       return;
     }
-    if (spec.files && fileState.files.some((f) => f.status === 'error')) {
+    if (spec.files && fileState.failed) {
       setError(t('ac.notices.fixFiles'));
       return;
     }
@@ -137,7 +154,7 @@ export function NoticesTab({ course }: { course: Course }) {
             </div>
           )}
           <FormField label={t('ac.notices.field.type')} hint={t(`ac.notices.typeHint.${type}`)}>
-            <Select value={type} onChange={(e) => changeType(e.target.value as NoticeType)}>
+            <Select value={type} onChange={(e) => requestType(e.target.value as NoticeType)}>
               {NOTICE_TYPES.map((k) => (
                 <option key={k} value={k}>
                   {t(`ac.notice.type.${k}`)}
@@ -162,6 +179,14 @@ export function NoticesTab({ course }: { course: Course }) {
           )}
           {!spec.title && !spec.note && spec.event === 'none' && <p className={styles.muted}>{t('ac.notices.noFields')}</p>}
           {spec.files && <NoticeFilesField state={fileState} disabled={send.isPending} />}
+          {spec.files && fileState.rejected > 0 && (
+            <p className={styles.muted} role="status">
+              {t('ac.notices.rejectedNote', { n: fileState.rejected })}{' '}
+              <Button type="button" size="sm" variant="ghost" onClick={fileState.dropRejected}>
+                {t('ac.notices.dropRejected')}
+              </Button>
+            </p>
+          )}
           <div className={styles.actionsRow}>
             <Button type="submit" loading={send.isPending} leftIcon={<Icon name="megaphone" size={16} />}>
               {t('ac.notices.send')}
@@ -189,6 +214,19 @@ export function NoticesTab({ course }: { course: Course }) {
         )}
       </Card>
 
+      <ConfirmDialog
+        open={!!switchTo}
+        onClose={() => setSwitchTo(null)}
+        onConfirm={() => {
+          if (switchTo) changeType(switchTo);
+          setSwitchTo(null);
+        }}
+        title={t('ac.notices.switchTitle')}
+        message={t('ac.notices.switchText')}
+        consequence={t('ac.notices.switchConsequence')}
+        confirmLabel={t('ac.notices.switchConfirm')}
+        initialFocus="cancel"
+      />
       <ConfirmDialog
         open={!!deleting}
         onClose={() => setDeleting(null)}

@@ -2,7 +2,7 @@
 // dosya başına yükleme ilerlemesi ve hatası. Yükleme eklenir eklenmez başlar (POST /academician/courses/{id}/notice-files,
 // çağrı başına tek dosya); dönen kimlikler duyuru oluşturulurken `fileIds` ile bağlanır. Listeden çıkarılan dosya sunucuda da silinir
 // (DELETE /academician/notice-files/{id}); bağlanmayan yüklemeleri sunucu 24 saatte temizler.
-import { useCallback, useEffect, useRef, useState, type DragEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { deletePendingFile, uploadNoticeFile } from '../../../api/academician';
 import { Button, Icon, ProgressBar } from '../../../components/ui';
 import { useI18n } from '../../../i18n/I18nProvider';
@@ -10,7 +10,8 @@ import { useT, type T } from '../dict';
 import { acadError } from '../errors';
 import { fmtSize } from '../format';
 import styles from '../academician.module.css';
-import { ACCEPT_ATTR, MAX_FILES, MAX_FILE_BYTES, checkFile, type FileCheck } from './noticeRules';
+import { useAcadAuth } from '../auth/AcadAuth';
+import { ACCEPT_ATTR, checkFile, fileLimitsOf, type FileCheck, type FileLimits } from './noticeRules';
 
 export interface QueuedFile {
   id: string;
@@ -32,13 +33,15 @@ const FILE_ERR: Record<FileCheck, string> = {
   empty: 'ac.files.err.empty',
 };
 
-export function fileCheckMessage(t: T, c: FileCheck): string {
-  return t(FILE_ERR[c], { max: MAX_FILES, mb: MAX_FILE_BYTES / (1024 * 1024) });
+export function fileCheckMessage(t: T, c: FileCheck, l: FileLimits): string {
+  return t(FILE_ERR[c], { max: l.maxFiles, mb: Math.round(l.maxBytes / (1024 * 1024)) });
 }
 
 export function useNoticeFiles(courseId: number) {
   const i18n = useI18n();
   const t = useT();
+  const limitsRaw = useAcadAuth().me?.limits;
+  const limits = useMemo(() => fileLimitsOf(limitsRaw), [limitsRaw]);
   const [files, setFiles] = useState<QueuedFile[]>([]);
   const aborts = useRef(new Map<string, AbortController>());
   const filesRef = useRef(files);
@@ -68,8 +71,8 @@ export function useNoticeFiles(courseId: number) {
       let count = filesRef.current.filter((f) => !f.rejected).length;
       const next: QueuedFile[] = [];
       for (const file of incoming) {
-        const bad = checkFile(file, count);
-        const q: QueuedFile = { id: `f${++seq}`, file, status: bad ? 'error' : 'uploading', progress: 0, rejected: bad ? true : undefined, error: bad ? fileCheckMessage(t, bad) : undefined };
+        const bad = checkFile(file, count, limits);
+        const q: QueuedFile = { id: `f${++seq}`, file, status: bad ? 'error' : 'uploading', progress: 0, rejected: bad ? true : undefined, error: bad ? fileCheckMessage(t, bad, limits) : undefined };
         if (!bad) count++;
         next.push(q);
       }
@@ -77,7 +80,7 @@ export function useNoticeFiles(courseId: number) {
       // yükleme state yerleştikten sonra başlar
       queueMicrotask(() => next.filter((q) => !q.rejected).forEach(start));
     },
-    [start, t],
+    [start, t, limits],
   );
 
   const remove = useCallback((id: string) => {
@@ -115,16 +118,19 @@ export function useNoticeFiles(courseId: number) {
   }, []);
 
   const uploading = files.some((f) => f.status === 'uploading');
-  const failed = files.some((f) => f.status === 'error');
+  // yerel ön kontrolden dönenler (rejected) gönderilmeyecek; yalnız yüklenemeyen (sunucu hatası) dosyalar gönderimi engeller
+  const failed = files.some((f) => f.status === 'error' && !f.rejected);
+  const rejected = files.filter((f) => f.rejected).length;
+  const dropRejected = () => setFiles((fs) => fs.filter((f) => !f.rejected));
   const serverIds = files.filter((f) => f.status === 'done' && f.serverId !== undefined).map((f) => f.serverId!);
-  return { files, add, remove, retry, clearAttached, discardAll, uploading, failed, serverIds };
+  return { files, add, remove, retry, clearAttached, discardAll, uploading, failed, rejected, dropRejected, serverIds, limits };
 }
 
 export function NoticeFilesField({ state, disabled }: { state: ReturnType<typeof useNoticeFiles>; disabled?: boolean }) {
   const t = useT();
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
-  const { files, add, remove, retry } = state;
+  const { files, add, remove, retry, limits } = state;
 
   function onDrop(e: DragEvent) {
     e.preventDefault();
@@ -152,7 +158,7 @@ export function NoticeFilesField({ state, disabled }: { state: ReturnType<typeof
       >
         <Icon name="file" size={22} aria-hidden="true" />
         <p>{t('ac.files.drop')}</p>
-        <Button type="button" variant="secondary" size="sm" disabled={disabled || files.filter((f) => !f.rejected).length >= MAX_FILES} onClick={() => input.current?.click()}>
+        <Button type="button" variant="secondary" size="sm" disabled={disabled || files.filter((f) => !f.rejected).length >= limits.maxFiles} onClick={() => input.current?.click()}>
           {t('ac.files.pick')}
         </Button>
         <input
@@ -167,7 +173,7 @@ export function NoticeFilesField({ state, disabled }: { state: ReturnType<typeof
             e.target.value = '';
           }}
         />
-        <p className={styles.muted}>{t('ac.files.rules', { max: MAX_FILES, mb: MAX_FILE_BYTES / (1024 * 1024) })}</p>
+        <p className={styles.muted}>{t('ac.files.rules', { max: limits.maxFiles, mb: Math.round(limits.maxBytes / (1024 * 1024)) })}</p>
       </div>
       {files.length > 0 && (
         <ul className={styles.fileList} aria-label={t('ac.files.listAria')}>
@@ -185,6 +191,7 @@ export function NoticeFilesField({ state, disabled }: { state: ReturnType<typeof
                 {f.status === 'error' && (
                   <span className={styles.errText} role="alert">
                     <Icon name="alert" size={14} aria-hidden="true" /> {f.error}
+                    {f.rejected && ` ${t('ac.files.notSent')}`}
                   </span>
                 )}
               </div>

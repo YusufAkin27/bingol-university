@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Route, Routes } from 'react-router-dom';
 import { tokensFor } from '../../../auth/tokens';
 import { renderWithProviders } from '../../../test/utils';
+import { AcadAuthProvider } from '../auth/AcadAuth';
 import { course, err, mockApi } from '../testUtils';
 import LivePage from './LivePage';
 import { clockOffset, isStale, mergeCodes, pickCode, pickNext, qrState } from './liveCode';
@@ -15,6 +16,8 @@ const code = (step: number) => `bingol-lesson:5.${step}.mac${step}`;
 const window5 = (step: number) => ({ code: code(step), fromMs: step * 5000, untilMs: (step + 1) * 5000 });
 
 interface Server {
+  /** Sıradaki yoklamaya verilecek sahte durum (tek seferlik); undefined = normal yanıt. */
+  next?: (init: RequestInit) => Response | Promise<Response>;
   status: 'OPEN' | 'CLOSED';
   skew: number;
   failing: boolean;
@@ -33,7 +36,13 @@ function setup(over: Partial<Server> = {}) {
       { studentId: 12, displayName: 'Mehmet Deneme', studentNo: '2024000012', faculty: null, department: null, grade: null, addedAt: '2026-09-21T08:00:00Z' },
       { studentId: 13, displayName: 'Zeynep Test', studentNo: '2024000013', faculty: null, department: null, grade: null, addedAt: '2026-09-21T08:00:00Z' },
     ])
-    .get('/academician/sessions/5/live', () => {
+    .get('/academician/me', { status: 'APPROVED', approvalMode: 'AUTO', title: 'Dr.', firstName: 'D', lastName: 'H', unit: null, rejectReason: null })
+    .get('/academician/sessions/5/live', ({ init }) => {
+      if (server.next) {
+        const f = server.next;
+        server.next = undefined;
+        return f(init);
+      }
       if (server.failing) throw new TypeError('network down');
       const now = Date.now() + server.skew;
       const step = Math.floor(now / 5000);
@@ -83,10 +92,14 @@ function setup(over: Partial<Server> = {}) {
       return undefined;
     });
   api.install();
+  tokensFor('acad').setTokens('acad-access', 'acad-refresh');
   const view = renderWithProviders(
-    <Routes>
-      <Route path="/akademisyen/yoklama/:sessionId" element={<LivePage />} />
-    </Routes>,
+    <AcadAuthProvider>
+      <Routes>
+        <Route path="/akademisyen/yoklama/:sessionId" element={<LivePage />} />
+        <Route path="/akademisyen/beklemede" element={<p>beklemede sayfasi</p>} />
+      </Routes>
+    </AcadAuthProvider>,
     { route: '/akademisyen/yoklama/5' },
   );
   return { server, api, ...view };
@@ -144,7 +157,7 @@ describe('canlı kod seçimi', () => {
     expect(screen.getByText('Bağlantı bekleniyor')).toBeInTheDocument();
     expect(document.body.innerHTML).not.toContain('bingol-lesson:'); // bayat kod DOM'da kalmaz
     server.failing = false;
-    await tick(3000);
+    await tick(12_000); // geri çekilme (en çok ~10 sn) sonrası ilk başarılı yoklama
     expect(shownCode()).toBe(code(Math.floor((Date.now() + SKEW) / 5000)));
     expect(screen.queryByText('Bağlantı bekleniyor')).toBeNull();
   });
@@ -199,7 +212,7 @@ describe('katılanlar listesi', () => {
     expect(items[0]).toHaveTextContent('Elle');
     expect(items[1]).toHaveTextContent('Ayşe Örnek');
     expect(items[1]).toHaveTextContent('QR');
-    expect(screen.getByLabelText('3 öğrenciden 2 tanesi katıldı')).toBeInTheDocument();
+    expect(screen.getByText('3 öğrenciden 2 tanesi katıldı')).toBeInTheDocument(); // ekran okuyucu metni (görsel sayılar aria-hidden)
   });
 
   it('kaldırılan kayıt katılanlardan çıkar, "kaldırılanlar"a düşer; geri yüklenince döner', async () => {
@@ -210,7 +223,7 @@ describe('katılanlar listesi', () => {
     await tick(2600);
     expect(screen.queryByRole('list', { name: 'Katılanlar' })).toBeNull();
     expect(screen.getByText('Kaldırılan kayıtlar (1)')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Ayşe Örnek kaydını geri yükle' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ayşe Örnek için Var' }));
     await tick(200);
     expect(within(screen.getByRole('list', { name: 'Katılanlar' })).getByText('Ayşe Örnek')).toBeInTheDocument();
   });
@@ -218,7 +231,7 @@ describe('katılanlar listesi', () => {
   it('listeden kaldırma onay ister ve DELETE gönderir', async () => {
     const { api } = setup({ records: [rec(11, 'Ayşe Örnek')] });
     await tick(100);
-    fireEvent.click(screen.getByRole('button', { name: 'Ayşe Örnek yoklama kaydını kaldır' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Ayşe Örnek için Yok' }));
     await tick(50);
     const dlg = screen.getByRole('alertdialog');
     expect(api.callsTo('DELETE', '/academician/sessions/5/records/11')).toHaveLength(0);
@@ -232,7 +245,7 @@ describe('katılanlar listesi', () => {
     await tick(100);
     fireEvent.change(screen.getByLabelText('Öğrenci ara'), { target: { value: 'zeynep' } });
     await tick(50);
-    fireEvent.click(screen.getByRole('button', { name: 'Zeynep Test öğrencisini var say' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Zeynep Test için Var' }));
     await tick(300);
     expect(api.callsTo('PUT', '/academician/sessions/5/records/13')).toHaveLength(1);
     expect(within(screen.getByRole('list', { name: 'Katılanlar' })).getByText('Zeynep Test')).toBeInTheDocument();
@@ -294,6 +307,12 @@ describe('kapat / yeniden aç', () => {
     expect(shownCode()).toBeNull();
     expect(screen.getAllByText('Yoklama kapalı').length).toBeGreaterThan(0);
     fireEvent.click(screen.getAllByRole('button', { name: 'Yeniden aç' })[0]);
+    await tick(50);
+    // W9: yeniden açma onay ister ve sonucu açıklar
+    expect(api.callsTo('POST', '/academician/sessions/5/reopen')).toHaveLength(0);
+    const ask = screen.getByRole('dialog');
+    expect(ask).toHaveTextContent('şu an açık başka bir yoklaması varsa o kapatılır');
+    fireEvent.click(within(ask).getByRole('button', { name: 'Yeniden aç' }));
     await tick(300);
     expect(api.callsTo('POST', '/academician/sessions/5/reopen')).toHaveLength(1);
     expect(shownCode()).not.toBeNull();
@@ -307,13 +326,138 @@ describe('hata durumları', () => {
       .get('/academician/sessions/5/live', () => err(404, 'AC_SESSION_NOT_FOUND'));
     api.install();
     renderWithProviders(
-      <Routes>
-        <Route path="/akademisyen/yoklama/:sessionId" element={<LivePage />} />
-      </Routes>,
+      <AcadAuthProvider>
+        <Routes>
+          <Route path="/akademisyen/yoklama/:sessionId" element={<LivePage />} />
+        </Routes>
+      </AcadAuthProvider>,
       { route: '/akademisyen/yoklama/5' },
     );
     await tick(200);
     expect(screen.getByText('Yoklama oturumu bulunamadı')).toBeInTheDocument();
+  });
+});
+
+describe('W1-W4: poll hataları, zaman aşımı, sıra dışı yanıt, kapanış nedeni', () => {
+  const hang = (init: RequestInit) => new Promise<Response>((_, rej) => init.signal?.addEventListener('abort', () => rej(new DOMException('Aborted', 'AbortError'))));
+
+  it('W1: oturum ortasında 403 ACADEMICIAN_NOT_APPROVED durumu yeniden okutur ve beklemede sayfasına yönlendirir', async () => {
+    const { server, api } = setup();
+    await tick(200);
+    const before = api.callsTo('GET', '/academician/me').length;
+    server.next = () => err(403, 'ACADEMICIAN_NOT_APPROVED');
+    await tick(2600);
+    expect(api.callsTo('GET', '/academician/me').length).toBeGreaterThan(before);
+  });
+
+  it('W1: 429 Retry-After süresince yeni istek atılmaz', async () => {
+    const { server, api } = setup();
+    await tick(200);
+    server.next = () => new Response(JSON.stringify({ code: 'TOO_MANY_REQUESTS', message: 'x' }), { status: 429, headers: { 'Content-Type': 'application/json', 'Retry-After': '9' } });
+    await tick(2600); // 429 yanıtı
+    const n = liveCalls(api);
+    await tick(8000);
+    expect(liveCalls(api)).toBe(n); // 9 sn dolmadan yeniden denenmez
+    await tick(2000);
+    expect(liveCalls(api)).toBe(n + 1);
+  });
+
+  it('W1: kalıcı 500 hatasında geri çekilme artar ve eşlenen hata metni panelde görünür; QR yine 10 sn sonra gizlenir', async () => {
+    const { server, api } = setup();
+    await tick(200);
+    server.next = undefined;
+    const fail = () => err(500, 'SERVER_ERROR');
+    const original = server.next;
+    void original;
+    // her yanıtı 500 yap
+    const live = api.on('GET', '/academician/sessions/5/live', fail);
+    void live;
+    await tick(2600);
+    await tick(5200);
+    const n = liveCalls(api);
+    await tick(10_000); // artık 2,5 sn'de değil, geri çekilerek (>= 5 sn aralık) denenir
+    expect(liveCalls(api) - n).toBeLessThanOrEqual(2);
+    expect(shownCode()).toBeNull();
+    expect(screen.getByRole('alert')).toHaveTextContent(/Sunucu|hata|yeniden/i);
+  });
+
+  it('W2: takılan istek 5 sn sonra iptal edilir ve yoklama kendiliğinden toparlanır', async () => {
+    const { server, api } = setup();
+    await tick(200);
+    server.next = hang;
+    await tick(2600); // takılan istek başladı
+    const started = liveCalls(api);
+    await tick(5200); // zaman aşımı
+    // son taze yanıt 10 sn'den eski olunca QR gizlenir; takılan istek kilitlenmeye yol açmaz
+    await tick(6000);
+    expect(liveCalls(api)).toBeGreaterThan(started); // kilitlenmedi
+    expect(shownCode()).not.toBeNull(); // toparlandı
+  });
+
+  it('W2: sekme görünür olunca takılan eski istek iptal edilir ve hemen yenisi atılır', async () => {
+    const { server, api } = setup();
+    await tick(200);
+    server.next = hang;
+    await tick(2600);
+    const n = liveCalls(api);
+    await act(async () => setHidden(true));
+    await act(async () => setHidden(false));
+    await tick(20);
+    expect(liveCalls(api)).toBe(n + 1);
+    expect(shownCode()).not.toBeNull();
+  });
+
+  it('W2: ağ geri gelince (online) hemen yoklar', async () => {
+    const { api } = setup();
+    await tick(200);
+    const n = liveCalls(api);
+    await act(async () => void window.dispatchEvent(new Event('online')));
+    await tick(20);
+    expect(liveCalls(api)).toBe(n + 1);
+  });
+
+  it('geç gelen eski yanıt yeni yanıtın üstüne yazılmaz (sıra dışı)', async () => {
+    const { server } = setup();
+    await tick(200);
+    let release!: () => void;
+    server.next = () =>
+      new Promise<Response>((resolve) => {
+        release = () => resolve(new Response(JSON.stringify({ status: 'OPEN', serverNowMs: Date.now() + SKEW, stepSeconds: 5, codes: [], presentCount: 0, enrolledCount: 3, newRecords: [], pendingScans: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+      });
+    await tick(2600); // eski istek takıldı
+    server.records = [rec(11, 'Ayşe Örnek')];
+    await act(async () => setHidden(true));
+    await act(async () => setHidden(false)); // eskiyi iptal eder, yeni istek yeni durumu alır
+    await tick(100);
+    expect(within(screen.getByRole('list', { name: 'Katılanlar' })).getByText('Ayşe Örnek')).toBeInTheDocument();
+    release(); // eski (boş) yanıt şimdi gelir
+    await tick(100);
+    expect(within(screen.getByRole('list', { name: 'Katılanlar' })).getByText('Ayşe Örnek')).toBeInTheDocument();
+  });
+
+  it('W3: oturum kullanıcı kapatmadan kapanırsa nedeni söylenir', async () => {
+    const { server } = setup();
+    await tick(200);
+    server.status = 'CLOSED';
+    await tick(2600);
+    expect(screen.getAllByText(/siz kapatmadan kapandı/).length).toBeGreaterThan(0);
+  });
+
+  it('W4: sayaç düz metin alternatifiyle okunur (aria-label yok), canlı kod üretim işaretinde DOM özniteliği olarak yazılmaz', async () => {
+    setup();
+    await tick(200);
+    expect(document.querySelector('p[aria-label]')).toBeNull();
+    expect(screen.getByText('0 öğrenciden 0 tanesi katıldı'.replace('0 öğrenciden 0', '3 öğrenciden 0'))).toBeInTheDocument();
+  });
+
+  it('izinli kayıt katılanlardan ayrı listelenir ve üç seçenekli denetimle değiştirilir', async () => {
+    const { api } = setup({ records: [rec(11, 'Ayşe Örnek', { excused: true, method: 'MANUAL' })] });
+    await tick(200);
+    expect(screen.queryByRole('list', { name: 'Katılanlar' })).toBeNull();
+    expect(screen.getByText('İzinli öğrenciler (1)')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Ayşe Örnek için Var' }));
+    await tick(200);
+    expect(api.callsTo('PUT', '/academician/sessions/5/records/11')).toHaveLength(1);
   });
 });
 

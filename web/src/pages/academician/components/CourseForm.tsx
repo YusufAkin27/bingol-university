@@ -1,6 +1,6 @@
 // Ders oluşturma/düzenleme penceresi. Fakülte/bölüm/sınıf seçenekleri herkese açık katalogdan gelir (GET /api/catalog/academic):
 // ders hedef kitlesi (bölüm) toplu kayıtta öğrenci profilindeki bölüm adıyla eşleşir. Sunucu değerleri katalogla doğrular.
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { acadKeys, createCourse, getCatalog, patchCourse, type Course, type CourseBody } from '../../../api/academician';
 import { Button, FormField, Icon, Input, Modal, Select, useToast } from '../../../components/ui';
@@ -40,6 +40,8 @@ export function CourseFormDialog({ open, onClose, course, onSaved }: Props) {
   const [faculty, setFaculty] = useState(course?.faculty ?? '');
   const [department, setDepartment] = useState(course?.department ?? '');
   const [grade, setGrade] = useState(course?.grade ?? '');
+  const [planned, setPlanned] = useState(course?.plannedSessions ? String(course.plannedSessions) : '');
+  const formId = useId();
   const [touched, setTouched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const depts = useMemo(() => departmentOptions(catalog.data, faculty), [catalog.data, faculty]);
@@ -47,7 +49,7 @@ export function CourseFormDialog({ open, onClose, course, onSaved }: Props) {
   const save = useMutation({
     mutationFn: (b: CourseBody) =>
       course
-        ? patchCourse(course.id, { code: b.code ?? '', name: b.name, term: b.term, faculty: b.faculty ?? '', department: b.department, grade: b.grade ?? '' })
+        ? patchCourse(course.id, { code: b.code ?? '', name: b.name, term: b.term, faculty: b.faculty ?? '', department: b.department, grade: b.grade ?? '', plannedSessions: b.plannedSessions ?? (course?.plannedSessions ? 0 : null) })  /* 0 = sunucuda temizle */
         : createCourse(b),
     onSuccess: (c) => {
       void qc.invalidateQueries({ queryKey: acadKeys.courses() });
@@ -64,11 +66,14 @@ export function CourseFormDialog({ open, onClose, course, onSaved }: Props) {
   const errName = touched && !name.trim() ? req : null;
   const errTerm = touched && !term.trim() ? req : null;
   const errDept = touched && !department.trim() ? req : null;
+  const plannedNum = planned.trim() === '' ? null : Number(planned);
+  const errPlanned = plannedNum !== null && !(Number.isInteger(plannedNum) && plannedNum >= 1 && plannedNum <= 400) ? t('ac.courseForm.plannedErr') : null;
 
   function submit() {
+    if (save.isPending) return; // çift gönderim yok
     setTouched(true);
     setError(null);
-    if (!name.trim() || !term.trim() || !department.trim()) return;
+    if (!name.trim() || !term.trim() || !department.trim() || errPlanned) return;
     save.mutate({
       code: code.trim() || undefined,
       name: name.trim(),
@@ -76,6 +81,7 @@ export function CourseFormDialog({ open, onClose, course, onSaved }: Props) {
       faculty: faculty || undefined,
       department: department.trim(),
       grade: grade || undefined,
+      plannedSessions: plannedNum,
     });
   }
 
@@ -89,13 +95,15 @@ export function CourseFormDialog({ open, onClose, course, onSaved }: Props) {
           <Button variant="secondary" onClick={onClose}>
             {t('ac.cancel')}
           </Button>
-          <Button loading={save.isPending} onClick={submit}>
+          {/* form dışındaki alt çubukta olduğundan `form` özniteliğiyle forma bağlı: Enter ve tıklama aynı gönderimi yapar */}
+          <Button type="submit" form={formId} loading={save.isPending}>
             {course ? t('ac.save') : t('ac.courseForm.create')}
           </Button>
         </>
       }
     >
       <form
+        id={formId}
         className={styles.formStack}
         noValidate
         onSubmit={(e) => {
@@ -103,6 +111,8 @@ export function CourseFormDialog({ open, onClose, course, onSaved }: Props) {
           submit();
         }}
       >
+        {/* örtük gönderim (Enter) için formun kendi varsayılan düğmesi; görünen düğme alt çubukta `form` ile bağlıdır */}
+        <button type="submit" hidden tabIndex={-1} aria-hidden="true" />
         {error && (
           <div className={styles.alertBox} role="alert">
             <Icon name="alert" size={18} />
@@ -157,6 +167,9 @@ export function CourseFormDialog({ open, onClose, course, onSaved }: Props) {
               </option>
             ))}
           </Select>
+        </FormField>
+        <FormField label={t('ac.courseForm.planned')} hint={t('ac.courseForm.plannedHint')} error={errPlanned}>
+          <Input type="number" inputMode="numeric" min={1} max={400} value={planned} onChange={(e) => setPlanned(e.target.value)} />
         </FormField>
         {catalog.isError && <p className={styles.muted}>{t('ac.courseForm.catalogError')}</p>}
       </form>

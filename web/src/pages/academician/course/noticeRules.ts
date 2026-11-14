@@ -35,12 +35,23 @@ export const extensionOf = (name: string): string => {
 
 export type FileCheck = 'type' | 'size' | 'limit' | 'empty';
 
+export interface FileLimits {
+  maxBytes: number;
+  maxFiles: number;
+}
+export const DEFAULT_FILE_LIMITS: FileLimits = { maxBytes: MAX_FILE_BYTES, maxFiles: MAX_FILES };
+
+/** Sunucunun bildirdiği sınırlar (`GET /me` limits); yoksa varsayılanlar. */
+export function fileLimitsOf(l: { noticeFileMaxBytes?: number; noticeFilesPerNotice?: number } | null | undefined): FileLimits {
+  return { maxBytes: l?.noticeFileMaxBytes || MAX_FILE_BYTES, maxFiles: l?.noticeFilesPerNotice || MAX_FILES };
+}
+
 /** Dosya eklemeden önce yerel kontrol. `count` zaten listedeki dosya sayısıdır. */
-export function checkFile(file: Pick<File, 'name' | 'size'>, count: number): FileCheck | null {
-  if (count >= MAX_FILES) return 'limit';
+export function checkFile(file: Pick<File, 'name' | 'size'>, count: number, limits: FileLimits = DEFAULT_FILE_LIMITS): FileCheck | null {
+  if (count >= limits.maxFiles) return 'limit';
   if (!(ALLOWED_EXTENSIONS as readonly string[]).includes(extensionOf(file.name))) return 'type';
   if (file.size <= 0) return 'empty';
-  if (file.size > MAX_FILE_BYTES) return 'size';
+  if (file.size > limits.maxBytes) return 'size';
   return null;
 }
 
