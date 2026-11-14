@@ -14326,10 +14326,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get scanLessonPending => 'لست مسجلا في هذه المادة. تم إرسال المسح إلى المحاضر، وإذا وافق فسيتم تسجيل حضورك.';
+  String get scanLessonPending => 'لست مسجلا في هذه المادة. تم إرسال طلب حضورك إلى المحاضر، وإذا وافق فسيتم تسجيل حضورك.';
 
   @override
   String get scanLessonReceived => 'تم استلام المسح';
+
+  @override
+  String get courseNoticesMore => 'عرض المزيد';
 
   @override
   String get signOutPendingTitle => 'سيتم حذف الرسائل غير المرسلة';

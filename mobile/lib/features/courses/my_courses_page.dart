@@ -51,9 +51,12 @@ class _MyCoursesPageState extends State<MyCoursesPage> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _error = e;
-      });
+      if (_courses != null) {
+        // Veri zaten var (yenileme): hata geçici bildirimle gösterilir, eski liste korunur.
+        BuToast.show(context, errorText(e), kind: BuToastKind.error);
+      } else {
+        setState(() => _error = e);
+      }
     }
   }
 

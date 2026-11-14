@@ -138,6 +138,22 @@ class CourseNotice {
       );
 }
 
+/// Duyuru sayfası: sunucu `{items, nextCursor}` döner (sayfa boyutu en çok 50); [nextCursor] null ise son sayfadır.
+class NoticePage {
+  const NoticePage(this.items, this.nextCursor);
+
+  final List<CourseNotice> items;
+  final String? nextCursor;
+
+  factory NoticePage.fromJson(Object? v) {
+    final cursor = v is Map ? v['nextCursor'] : null;
+    return NoticePage(
+      [for (final j in listOfMaps(v)) CourseNotice.fromJson(j)],
+      cursor == null || '$cursor'.isEmpty ? null : '$cursor',
+    );
+  }
+}
+
 /// Yaklaşanları en yakın tarih önde olacak biçimde sıralar (tarihsizler sona).
 List<CourseNotice> sortUpcoming(List<CourseNotice> items) {
   final out = [...items];

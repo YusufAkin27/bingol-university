@@ -25815,7 +25815,7 @@ abstract class AppLocalizations {
   /// No description provided for @noticeTypeLessonCancelled.
   ///
   /// In tr, this message translates to:
-  /// **'Ders iptal'**
+  /// **'Ders iptali'**
   String get noticeTypeLessonCancelled;
 
   /// No description provided for @noticeTypeRoomChanged.
@@ -25845,7 +25845,7 @@ abstract class AppLocalizations {
   /// No description provided for @scanLessonPending.
   ///
   /// In tr, this message translates to:
-  /// **'Bu derse kayıtlı değilsin. Okutman öğretim elemanına iletildi; onaylarsa yoklaman işlenecek.'**
+  /// **'Bu derse kayıtlı değilsin. Yoklama isteğin öğretim elemanına iletildi; onaylarsa yoklaman işlenecek.'**
   String get scanLessonPending;
 
   /// No description provided for @scanLessonReceived.
@@ -25853,6 +25853,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Okutma alındı'**
   String get scanLessonReceived;
+
+  /// No description provided for @courseNoticesMore.
+  ///
+  /// In tr, this message translates to:
+  /// **'Daha fazla göster'**
+  String get courseNoticesMore;
 
   /// No description provided for @signOutPendingTitle.
   ///

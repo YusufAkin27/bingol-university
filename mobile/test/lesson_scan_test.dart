@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'support/fake_app.dart';
 
 const _payload = 'bingol-lesson:42.368000000.AbC_-defGhIjKlMnOpQrSt';
+const _fresh = 'bingol-lesson:42.368000001.ZyXwVuTsRqPoNmLkJiHg';
 const _path = '/attendance/scan';
 
 void main() {
@@ -30,6 +31,7 @@ void main() {
                   permissionService: perms,
                   scannerBuilder: (c, onValue) => Column(children: [
                     TextButton(key: const ValueKey('scan-lesson'), onPressed: () => onValue(_payload), child: const Text('a')),
+                    TextButton(key: const ValueKey('scan-fresh'), onPressed: () => onValue(_fresh), child: const Text('f')),
                     TextButton(key: const ValueKey('scan-bad'), onPressed: () => onValue('bingol-lesson:zzz'), child: const Text('b')),
                   ]),
                 ),
@@ -89,7 +91,7 @@ void main() {
       await settle(tester, const Duration(seconds: 3));
     });
 
-    testWidgets('422: "süresi doldu" mesajı, tarayıcı açık kalır, hemen yeniden okutulabilir', (tester) async {
+    testWidgets('422: "süresi doldu" mesajı, tarayıcı açık kalır; aynı bayat kod tekrar gönderilmez, taze kod hemen gönderilir', (tester) async {
       await open(tester);
       be.fail(_path, status: 422, code: 'ATTENDANCE_CODE_INVALID', message: 'Kod geçersiz.');
       await tester.tap(find.byKey(const ValueKey('scan-lesson')));
@@ -97,10 +99,18 @@ void main() {
       expect(find.byType(QrScanHubPage), findsOneWidget);
       expect(find.textContaining('Ekrandaki kodu yeniden okut'), findsOneWidget);
       expect(be.count('POST $_path'), 1);
+      // Kamera aynı bayat kodu art arda okur: sunucuya yeniden gitmez (10/dk sınırı tükenmesin).
+      for (var i = 0; i < 5; i++) {
+        await tester.tap(find.byKey(const ValueKey('scan-lesson')));
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(be.count('POST $_path'), 1);
+      // Farklı (taze) kod beklemeden gönderilir.
       be.on(_path, {'status': 'MARKED', 'courseName': 'Matematik 101', 'lessonDate': '2026-11-14'});
-      await tester.tap(find.byKey(const ValueKey('scan-lesson')));
+      await tester.tap(find.byKey(const ValueKey('scan-fresh')));
       await settle(tester, const Duration(milliseconds: 800));
       expect(be.count('POST $_path'), 2);
+      expect(be.bodies['POST $_path'], {'code': _fresh});
       expect(find.byType(QrScanHubPage), findsNothing);
       await settle(tester, const Duration(seconds: 3));
     });
@@ -125,13 +135,18 @@ void main() {
       await settle(tester, const Duration(seconds: 3));
     });
 
-    testWidgets('429: genel "çok fazla deneme" mesajı, tarayıcı açık kalır', (tester) async {
+    testWidgets('429: bekleme mesajı, tarayıcı açık kalır, süre dolana dek yeni kod bile gönderilmez', (tester) async {
       await open(tester);
-      be.fail(_path, status: 429, code: 'RATE_LIMITED');
+      be.on(_path, {'code': 'RATE_LIMITED', 'message': ''}, status: 429, headers: {'retry-after': '30'});
       await tester.tap(find.byKey(const ValueKey('scan-lesson')));
       await settle(tester, const Duration(milliseconds: 500));
       expect(find.byType(QrScanHubPage), findsOneWidget);
       expect(find.textContaining('Çok fazla deneme'), findsOneWidget);
+      expect(be.count('POST $_path'), 1);
+      await tester.tap(find.byKey(const ValueKey('scan-fresh')));
+      await tester.tap(find.byKey(const ValueKey('scan-lesson')));
+      await settle(tester, const Duration(milliseconds: 500));
+      expect(be.count('POST $_path'), 1);
       await settle(tester, const Duration(seconds: 4));
     });
 

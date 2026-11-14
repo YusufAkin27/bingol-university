@@ -10,7 +10,7 @@ import 'course_widgets.dart';
 import 'my_courses_api.dart';
 import 'my_courses_models.dart';
 
-/// Ders ayrıntısı (öğrenci): devam durumu ve sınır + dersin duyuruları (ekleriyle).
+/// Ders ayrıntısı (öğrenci): devam durumu ve sınır + dersin duyuruları (ekleriyle, sayfa sayfa).
 /// Bildirim dokunuşu yalnız [courseId] ile açar; [course] verilmezse `GET /my-courses` listesinden bulunur.
 class MyCourseDetailPage extends StatefulWidget {
   const MyCourseDetailPage({super.key, required this.session, required this.courseId, this.course});
@@ -27,6 +27,8 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage> {
   late final MyCoursesApi _api = MyCoursesApi(widget.session);
   MyCourse? _course;
   List<CourseNotice>? _notices;
+  String? _next;
+  bool _loadingMore = false;
   Object? _error;
 
   @override
@@ -40,26 +42,49 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage> {
     setState(() => _error = null);
     try {
       // Duyurular asıl içeriktir (403: derse kayıtlı değil -> hata); ders özeti yalnız başlık/sayılar içindir.
-      final notices = await _api.notices(widget.courseId);
+      final page = await _api.notices(widget.courseId);
       MyCourse? course = _course;
-      if (course == null) {
-        try {
-          final all = await _api.courses();
-          for (final c in all) {
-            if (c.courseId == widget.courseId) course = c;
-          }
-        } catch (_) {
-          // Özet alınamazsa duyurular yine gösterilir.
+      try {
+        // Devam sayıları da yenilenir (yenileme/geri dönüş); alınamazsa eldeki özet korunur.
+        for (final c in await _api.courses()) {
+          if (c.courseId == widget.courseId) course = c;
         }
+      } catch (_) {
+        // Özet alınamazsa duyurular yine gösterilir.
       }
       if (!mounted) return;
       setState(() {
-        _notices = notices;
+        _notices = page.items;
+        _next = page.nextCursor;
         _course = course;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e);
+      if (_notices != null) {
+        // Veri zaten var (yenileme): hata geçici bildirimle gösterilir, eski liste korunur.
+        BuToast.show(context, errorText(e), kind: BuToastKind.error);
+      } else {
+        setState(() => _error = e);
+      }
+    }
+  }
+
+  Future<void> _loadMore() async {
+    final cursor = _next;
+    if (cursor == null || _loadingMore) return;
+    setState(() => _loadingMore = true);
+    try {
+      final page = await _api.notices(widget.courseId, cursor: cursor);
+      if (!mounted) return;
+      setState(() {
+        _notices = [...?_notices, ...page.items];
+        _next = page.nextCursor;
+        _loadingMore = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loadingMore = false);
+      BuToast.show(context, errorText(e), kind: BuToastKind.error);
     }
   }
 
@@ -77,7 +102,16 @@ class _MyCourseDetailPageState extends State<MyCourseDetailPage> {
     } else if (notices.isEmpty) {
       section = [AcadStateText(text: l.courseNoticesEmpty, top: 24)];
     } else {
-      section = [for (final n in notices) NoticeCard(session: widget.session, courseId: widget.courseId, notice: n)];
+      section = [
+        for (final n in notices) NoticeCard(session: widget.session, courseId: widget.courseId, notice: n),
+        if (_next != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: _loadingMore
+                ? const Center(child: Padding(padding: EdgeInsets.all(12), child: BuSpinner()))
+                : AcadStateText(key: const ValueKey('notices-more'), text: '', actionLabel: l.courseNoticesMore, onAction: _loadMore, top: 0),
+          ),
+      ];
     }
     return [
       if (c != null)

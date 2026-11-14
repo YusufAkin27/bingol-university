@@ -64,6 +64,19 @@ void main() {
       expect(find.text('Yaklaşanlar'), findsNothing);
     });
 
+    testWidgets('yenileme hatası: liste korunur ve geçici hata bildirimi çıkar', (tester) async {
+      final be = FakeBackend()
+        ..on('/my-courses', [_course(1, 'Matematik 101')])
+        ..on('/my-courses/upcoming', []);
+      await openList(tester, be);
+      be.fail('/my-courses', status: 500);
+      await tester.drag(find.byType(ListView), const Offset(0, 400));
+      await settle(tester, const Duration(seconds: 1));
+      expect(find.text('Matematik 101'), findsOneWidget);
+      expect(find.byType(SnackBar), findsOneWidget);
+      await settle(tester, const Duration(seconds: 3));
+    });
+
     testWidgets('ders yoksa boş durum', (tester) async {
       final be = FakeBackend()
         ..on('/my-courses', [])
@@ -119,7 +132,7 @@ void main() {
       expect(_y(tester, 'upcoming-3'), lessThan(_y(tester, 'upcoming-4')));
       expect(_y(tester, 'upcoming-4'), lessThan(_y(tester, 'upcoming-5')));
       expect(_y(tester, 'upcoming-5'), lessThan(_y(tester, 'upcoming-1')));
-      expect(find.text('Ders iptal'), findsOneWidget);
+      expect(find.text('Ders iptali'), findsOneWidget);
       expect(find.text('Derslik değişti: B-204'), findsOneWidget);
       expect(find.text('Yeni tür'), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -129,7 +142,7 @@ void main() {
   group('Ders ayrıntısı ve ekler', () {
     FakeBackend backend(List<Map<String, dynamic>> notices) => FakeBackend()
       ..on('/my-courses', [_course(3, 'Matematik 101', atRisk: true)])
-      ..on('/my-courses/3/notices*', notices);
+      ..on('/my-courses/3/notices?size=50', {'items': notices, 'nextCursor': null});
 
     Future<void> openDetail(WidgetTester tester, FakeBackend be) async {
       useScreen(tester, kPhoneMedium);
@@ -195,13 +208,47 @@ void main() {
       await settle(tester, const Duration(seconds: 3));
     });
 
+    testWidgets('sayfalama: nextCursor izlenir, ikinci sayfa eklenir; hata olursa bildirim ve yeniden denenebilir', (tester) async {
+      final be = FakeBackend()
+        ..on('/my-courses', [_course(3, 'Matematik 101')])
+        ..on('/my-courses/3/notices?size=50', {'items': [_notice(21, 'EXAM', title: 'Final', eventAt: '2026-12-20T10:00:00Z')], 'nextCursor': 'c2'})
+        ..fail('/my-courses/3/notices?size=50&cursor=c2', status: 500);
+      await openDetail(tester, be);
+      expect(find.text('Final'), findsOneWidget);
+      expect(find.byKey(const ValueKey('notices-more')), findsOneWidget);
+      await tester.tap(find.text('Daha fazla göster'));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(be.count('GET /my-courses/3/notices?size=50&cursor=c2'), 1);
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(find.byKey(const ValueKey('notices-more')), findsOneWidget);
+      await settle(tester, const Duration(seconds: 3));
+      be.on('/my-courses/3/notices?size=50&cursor=c2', {'items': [_notice(5, 'MATERIAL', title: 'Eski notlar')], 'nextCursor': null});
+      await tester.tap(find.text('Daha fazla göster'));
+      await settle(tester, const Duration(milliseconds: 400));
+      expect(find.text('Final'), findsOneWidget);
+      expect(find.text('Eski notlar'), findsOneWidget);
+      expect(find.byKey(const ValueKey('notices-more')), findsNothing);
+    });
+
+    testWidgets('yenileme hatası: veri korunur ve geçici hata bildirimi çıkar', (tester) async {
+      final be = backend([_notice(12, 'MATERIAL', title: 'Notlar')]);
+      await openDetail(tester, be);
+      expect(find.text('Notlar'), findsOneWidget);
+      be.fail('/my-courses/3/notices?size=50', status: 500);
+      await tester.drag(find.byType(ListView), const Offset(0, 400));
+      await settle(tester, const Duration(seconds: 1));
+      expect(find.text('Notlar'), findsOneWidget);
+      expect(find.byType(SnackBar), findsOneWidget);
+      await settle(tester, const Duration(seconds: 3));
+    });
+
     testWidgets('duyuru listesi hatası: yeniden dene', (tester) async {
       final be = FakeBackend()
         ..on('/my-courses', [_course(3, 'Matematik 101')])
-        ..fail('/my-courses/3/notices*', status: 500);
+        ..fail('/my-courses/3/notices?size=50', status: 500);
       await openDetail(tester, be);
       expect(find.text('Ders materyali'), findsNothing);
-      be.on('/my-courses/3/notices*', [_notice(12, 'MATERIAL', title: 'Notlar')]);
+      be.on('/my-courses/3/notices?size=50', {'items': [_notice(12, 'MATERIAL', title: 'Notlar')], 'nextCursor': null});
       final retry = find.text('Yeniden dene');
       await tester.tap(retry.first);
       await settle(tester, const Duration(milliseconds: 600));

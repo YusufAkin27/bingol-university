@@ -14361,7 +14361,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noticeFileShareTitle => 'Dosyayı aç veya kaydet';
 
   @override
-  String get noticeTypeLessonCancelled => 'Ders iptal';
+  String get noticeTypeLessonCancelled => 'Ders iptali';
 
   @override
   String get noticeTypeRoomChanged => 'Derslik değişti';
@@ -14380,10 +14380,13 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get scanLessonPending => 'Bu derse kayıtlı değilsin. Okutman öğretim elemanına iletildi; onaylarsa yoklaman işlenecek.';
+  String get scanLessonPending => 'Bu derse kayıtlı değilsin. Yoklama isteğin öğretim elemanına iletildi; onaylarsa yoklaman işlenecek.';
 
   @override
   String get scanLessonReceived => 'Okutma alındı';
+
+  @override
+  String get courseNoticesMore => 'Daha fazla göster';
 
   @override
   String get signOutPendingTitle => 'Gönderilmemiş mesajlar silinecek';

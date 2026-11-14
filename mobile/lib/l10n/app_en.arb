@@ -5206,7 +5206,7 @@
   "scanLessonExpired": "The code has expired. Scan the code on the screen again.",
   "scanLessonNotEnrolled": "You are not on the attendance list for this course.",
   "scanLessonRevoked": "Your attendance for this class was removed by the lecturer.",
-  "scanLessonPending": "You are not enrolled in this course. Your scan was sent to the lecturer; if they approve, your attendance will be recorded.",
+  "scanLessonPending": "You are not enrolled in this course. Your attendance request was sent to the lecturer; if they approve, your attendance will be recorded.",
   "scanLessonReceived": "Scan received",
   "myCoursesTitle": "My courses",
   "myCoursesSub": "Attendance, notices and upcoming exams and assignments",
@@ -5270,6 +5270,7 @@
   "noticeFileShareTitle": "Open or save the file",
   "noticeTypeLessonCancelled": "Class cancelled",
   "noticeTypeRoomChanged": "Room changed",
+  "courseNoticesMore": "Show more",
   "noticeTypeOther": "Notice",
   "noticeRoomChanged": "Room changed: {room}",
   "@noticeRoomChanged": {

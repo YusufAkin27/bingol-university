@@ -14437,10 +14437,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get scanLessonPending => 'You are not enrolled in this course. Your scan was sent to the lecturer; if they approve, your attendance will be recorded.';
+  String get scanLessonPending => 'You are not enrolled in this course. Your attendance request was sent to the lecturer; if they approve, your attendance will be recorded.';
 
   @override
   String get scanLessonReceived => 'Scan received';
+
+  @override
+  String get courseNoticesMore => 'Show more';
 
   @override
   String get signOutPendingTitle => 'Unsent messages will be deleted';

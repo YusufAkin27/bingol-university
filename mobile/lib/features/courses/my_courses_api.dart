@@ -14,9 +14,11 @@ class MyCoursesApi {
   Future<List<MyCourse>> courses() async =>
       [for (final j in listOfMaps(await session.api.get('/my-courses'))) MyCourse.fromJson(j)];
 
-  Future<List<CourseNotice>> notices(int courseId) async => [
-        for (final j in listOfMaps(await session.api.get('/my-courses/$courseId/notices?size=50'))) CourseNotice.fromJson(j),
-      ];
+  /// Bir sayfa duyuru (yeniden eskiye); sonraki sayfa için önceki yanıtın `nextCursor` değeri verilir.
+  Future<NoticePage> notices(int courseId, {String? cursor}) async {
+    final q = cursor == null ? '' : '&cursor=${Uri.encodeQueryComponent(cursor)}';
+    return NoticePage.fromJson(await session.api.get('/my-courses/$courseId/notices?size=50$q'));
+  }
 
   Future<List<CourseNotice>> upcoming() async =>
       [for (final j in listOfMaps(await session.api.get('/my-courses/upcoming'))) CourseNotice.fromJson(j)];
@@ -40,10 +42,12 @@ String safeFileName(String name) {
 Future<void> openNoticeFile(Session session, int courseId, int noticeId, NoticeFile file, {String? title}) async {
   final bytes = await MyCoursesApi(session).fileBytes(courseId, noticeId, file.id);
   final name = safeFileName(file.name);
+  // `getBytes` zaten Uint8List döndürür (yanıt gövdesi): gereksiz üçüncü kopya yapılmaz.
+  final data = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
   final params = ShareParams(
     title: title,
     files: [
-      XFile.fromData(Uint8List.fromList(bytes),
+      XFile.fromData(data,
           mimeType: file.contentType.isEmpty ? 'application/octet-stream' : file.contentType, name: name),
     ],
     fileNameOverrides: [name],
