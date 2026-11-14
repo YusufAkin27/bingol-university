@@ -20,13 +20,12 @@ void main() {
       }
       return null;
     });
-    Object? result;
     await tester.pumpWidget(buildApp(Builder(
       builder: (c) => Center(
         child: TextButton(
           key: const ValueKey('open'),
-          onPressed: () async =>
-              result = await Navigator.of(c).push<Object?>(MaterialPageRoute<Object?>(builder: (_) => PollFormPage(session: makeSession(b), communityId: 5))),
+          onPressed: () =>
+              Navigator.of(c).push<Object?>(MaterialPageRoute<Object?>(builder: (_) => PollFormPage(session: makeSession(b), communityId: 5))),
           child: const Text('ac'),
         ),
       ),

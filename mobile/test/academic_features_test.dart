@@ -5,7 +5,6 @@ import 'package:bu_kampus/features/academic/exams_page.dart';
 import 'package:bu_kampus/features/academic/reminder_settings_page.dart';
 import 'package:bu_kampus/features/academic/reminders.dart';
 import 'package:bu_kampus/features/academic/timetable_page.dart';
-import 'package:bu_kampus/features/academic/timetable_parts.dart' show isolateIcs;
 import 'package:bu_kampus/features/profile/notification_prefs_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';

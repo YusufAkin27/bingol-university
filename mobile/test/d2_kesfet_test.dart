@@ -7,7 +7,6 @@ import 'package:bu_kampus/features/search/search_page.dart';
 import 'package:bu_kampus/features/posts/post_card.dart';
 import 'package:bu_kampus/features/posts/post_models.dart';
 import 'package:bu_kampus/widgets/bu.dart' show BuChip;
-import 'package:bu_kampus/features/search/search_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

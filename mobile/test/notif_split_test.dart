@@ -6,7 +6,6 @@ import 'package:bu_kampus/l10n/app_localizations.dart';
 import 'package:bu_kampus/widgets/bu.dart' show BuHeader;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'redesign/p00_support.dart';
 import 'support/fake_app.dart';
 
 /// NOTIFSPLIT: iki AYRI bildirim merkezi. Zil = Bildirimler (scope=INFORMATION: etkinlik/duyuru/sistem), kalp = Hareketler

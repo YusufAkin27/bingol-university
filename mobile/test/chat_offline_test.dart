@@ -9,7 +9,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'support/fake_app.dart';
 import 'support/fake_media.dart';
-import 'package:bu_kampus/core/icons/bu_icons.dart';
 
 FakeBackend _backend() => FakeBackend()
   ..on('/conversations/1/messages?size=30', {'items': <Object>[], 'nextCursor': null})

@@ -255,7 +255,6 @@ void main() {
         // Gecikmeli senaryoda yanit gelmez: iskelet gorunur.
         await tester.pumpWidget(_app(sc.page(b), v.$2, key, v.$3));
         await tester.runAsync(() async {
-          final ctx = tester.element(find.byType(Scaffold).first);
         });
         await settle(tester, const Duration(milliseconds: 1200));
         if (sc.after != null) {

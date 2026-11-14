@@ -291,7 +291,6 @@ void main() {
         if (sc.delay) b.delay = const Duration(seconds: 3);
         await tester.pumpWidget(_app(sc.page(b), v.$2, key, v.$3));
         await tester.runAsync(() async {
-          final ctx = tester.element(find.byType(Scaffold).first);
         });
         await settle(tester, sc.delay ? const Duration(milliseconds: 300) : const Duration(milliseconds: 1200));
         if (sc.after != null) {

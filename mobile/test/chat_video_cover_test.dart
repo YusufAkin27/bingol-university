@@ -23,7 +23,7 @@ import 'support/store_shots_images.dart';
 
 /// Sahte kare üretici: çağrıları sayar, isteğe bağlı bekletir.
 class _Frames implements VideoFrameSource {
-  _Frames({this.bytes, this.gate});
+  _Frames({this.bytes});
 
   Uint8List? bytes;
   final calls = <String>[];

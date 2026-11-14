@@ -1,10 +1,8 @@
 import 'package:bu_kampus/features/posts/comments/comment_models.dart';
 import 'package:bu_kampus/features/posts/comments/comment_sheet.dart';
-import 'package:bu_kampus/features/posts/comments/comments_api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
 
 import 'support/a11y_screens.dart';
 import 'support/fake_app.dart';
